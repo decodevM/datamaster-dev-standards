@@ -41,14 +41,15 @@ git clone "$TEMPLATE_REPO_URL" "$TEMPLATE_DIR"
 
 # 🚨 Check if cloning was successful
 if [ $? -ne 0 ]; then
+  rm -rf "$TEMPLATE_DIR"
   print_message "$COLOR_RED" "$MESSAGE_CLONE_FAILED"
   exit 1
 fi
 
 # 🌀 Ask the user to choose a configuration template
 print_message "$COLOR_YELLOW" "$MESSAGE_CHOOSE_TEMPLATE"
-print_message "$COLOR_GREEN" "1) Box"
-print_message "$COLOR_GREEN" "2) Task"
+echo "1) box"
+echo "2) task"
 read -p "Enter the number of your choice: " template_choice
 
 case "$template_choice" in
@@ -60,6 +61,7 @@ case "$template_choice" in
     ;;
   *)
     print_message "$COLOR_RED" "$MESSAGE_INVALID_CHOICE"
+    rm -rf "$TEMPLATE_DIR"
     exit 1
     ;;
 esac
@@ -84,26 +86,65 @@ else
   cp -r .github/* ../../.github/
 fi
 
+
+# # 🔑 Copy the Git hooks
+# if [ -d "../../.git/hooks" ]; then
+#   read -p "⚠️ .git/hooks directory exists. Do you want to overwrite it? (y/n): " overwrite_hooks
+#   if [[ "$overwrite_hooks" == "y" || "$overwrite_hooks" == "Y" ]]; then
+#     print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
+#     cp -r hooks/* ../../.git/hooks/
+#     print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
+#     chmod -R +x ../../.git/hooks/*
+#   else
+#     print_message "$COLOR_GREEN" "💡 Skipping .git/hooks directory overwrite."
+#   fi
+# else
+#   print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
+#   cp -r hooks/* ../../.git/hooks/
+#   print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
+#   chmod -R +x ../../.git/hooks/*
+# fi
+
+
+
+
 # 🔑 Copy the Git hooks
 if [ -d "../../.git/hooks" ]; then
-  read -p "⚠️ .git/hooks directory exists. Do you want to overwrite it? (y/n): " overwrite_hooks
-  if [[ "$overwrite_hooks" == "y" || "$overwrite_hooks" == "Y" ]]; then
-    print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
-    cp -r hooks/* ../../.git/hooks/
-    print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
-    chmod -R +x ../../.git/hooks/*
+  # Check if the `commit-msg` hook exists
+  if [ -f "../../.git/hooks/commit-msg" ]; then
+    read -p "⚠️ commit-msg hook already exists. Do you want to overwrite it? (y/n): " overwrite_commit_msg
+    if [[ "$overwrite_commit_msg" == "y" || "$overwrite_commit_msg" == "Y" ]]; then
+      print_message "$COLOR_YELLOW" "Overwriting existing commit-msg hook..."
+      cp hooks/commit-msg ../../.git/hooks/commit-msg
+      chmod +x ../../.git/hooks/commit-msg
+    else
+      print_message "$COLOR_GREEN" "💡 Skipping commit-msg hook overwrite."
+    fi
   else
-    print_message "$COLOR_GREEN" "💡 Skipping .git/hooks directory overwrite."
+    # If commit-msg doesn't exist, copy it
+    print_message "$COLOR_YELLOW" "Adding new commit-msg hook..."
+    cp hooks/commit-msg ../../.git/hooks/commit-msg
+    chmod +x ../../.git/hooks/commit-msg
   fi
+
+  # # Copy other hooks
+  # read -p "⚠️ .git/hooks directory exists. Do you want to overwrite other hooks? (y/n): " overwrite_hooks
+  # if [[ "$overwrite_hooks" == "y" || "$overwrite_hooks" == "Y" ]]; then
+  #   print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
+  #   cp -r hooks/* ../../.git/hooks/
+  #   chmod -R +x ../../.git/hooks/*
+  # else
+  #   print_message "$COLOR_GREEN" "💡 Skipping other hooks overwrite."
+  # fi
 else
+  # If .git/hooks directory doesn't exist, copy everything
   print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
   cp -r hooks/* ../../.git/hooks/
-  print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
   chmod -R +x ../../.git/hooks/*
 fi
 
 # 🔄 Return to the main repository folder
-cd ../../..
+cd ../..
 
 # ✅ Confirm the setup
 print_message "$COLOR_GREEN" "$MESSAGE_SETUP_COMPLETE"

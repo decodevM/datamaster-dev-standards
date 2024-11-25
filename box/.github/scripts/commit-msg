@@ -151,16 +151,16 @@ fi
 validate_commit_type() {
   # Extract the type (requires the presence of a scope)
   TYPE=$(echo "$COMMIT_MSG" | sed -n 's/^\([a-zA-Z]*\)([^)]*):.*/\1/p')
-  
-  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
-  if [[ -z "$SCOPE" ]]; then
-    print_commit_requirements "${MISSING_COMMIT_SCOPE}"
-    exit 1
-  fi
 
   # Check if type is valid
   if [[ -z "$TYPE" || ! " ${TYPES[@]} " =~ " ${TYPE} " ]]; then
     print_commit_requirements "${INVALID_COMMIT_TYPE}"
+    exit 1
+  fi
+
+  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
+  if [[ -z "$SCOPE" ]]; then
+    print_commit_requirements "${MISSING_COMMIT_SCOPE}"
     exit 1
   fi
 
