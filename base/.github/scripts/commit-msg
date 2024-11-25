@@ -29,7 +29,12 @@ print_commit_requirements(){
     # Commit message format explanation
     echo -e "${BLUE}  ✅ Format: <type>(<scope>): <short description>${RESET}"
     echo -e "${BLUE}    - <type>: One of ($(IFS=\,; echo "${TYPES[*]}"))${RESET}"
-    echo -e "${BLUE}    - <scope>: One of ($(IFS=\,; echo "${SCOPES[*]}"))${RESET}"
+    printf "\n"
+    echo -e "${BLUE}    - <scope>: One of:${RESET}"
+      for scope in "${SCOPES[@]}"; do
+        echo -e "${BLUE}      - ${scope}${RESET}"
+      done
+    printf "\n"
     echo -e "${BLUE}    - <description>: Starts with uppercase, max $SHORT_DESC_LENGTH chars${RESET}\n"
     echo -e "${BLUE}  Body (optional): Detailed change description (multiline supported).${RESET}\n"
     echo -e "${BLUE}  Footer (required): ${REFS_REGEX}${RESET}\n"
@@ -83,11 +88,22 @@ SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within
 
 # Define type and scope options in arrays
 TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
-SCOPES=("Authentication" "Backend" "API" "Database" "UI" "Readme" "Dashboard" "Tools" "Github" "GitHub")
+SCOPES=("Authentication" 
+"Backend" 
+"API" 
+"Database" 
+"UI" 
+"Readme" 
+"Dashboard" 
+"Tools" 
+"Github" 
+"GitHub")
+
 
 # Generate type and scope regex dynamically (no trailing or leading spaces)
 TYPE_REGEX=$(IFS=\|; echo "${TYPES[*]}")
 SCOPE_REGEX=$(IFS=\|; echo "${SCOPES[*]}")
+
 
 # Define regex for each part of the commit message
 # SHORT_DESC_REGEX="[A-Z][^\n]{1,${SHORT_DESC_LENGTH}}"         # Starts with an uppercase letter, max ${SHORT_DESC_LENGTH} characters
@@ -101,7 +117,7 @@ REFS_REGEX="Refs: #[A-Za-z0-9-]+"  # Refs line regex
 
 # Combine regex for full commit message validation
 COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*$REFS_REGEX$"
-# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\): $SHORT_DESC_REGEX(\s*$MULTILINE_DESC_REGEX)?\s*\n*\s*$REFS_REGEX$"
+# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($)\): $SHORT_DESC_REGEX(\s*$MULTILINE_DESC_REGEX)?\s*\n*\s*$REFS_REGEX$"
 
 
 # Read the commit message (file or input string)
@@ -156,7 +172,8 @@ validate_commit_type() {
 
 # Validate the scope
 validate_commit_scope() {
-  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([a-zA-Z]*\)):.*$/\1/p')
+  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
+  
   if [[ ! " ${SCOPES[@]} " =~ " ${SCOPE} " ]]; then
 
     print_commit_requirements "${INVALID_COMMIT_SCOPE}"

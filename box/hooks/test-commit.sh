@@ -15,6 +15,25 @@ SCRIPT_PATH="./commit-msg"
 TERMINAL_WIDTH=$(tput cols)
 
 
+SCOPES=("authentication" 
+"account-management" 
+"category-management" 
+"customer-management" 
+"customer-orders" 
+"loyalty-management" 
+"parameter-management" 
+"product-management" 
+"product-labeling" 
+"promotion-management" 
+"reports" 
+"reception" 
+"sales-return" 
+"point-of-sale" 
+"session-management" 
+"stock-management" 
+"stock-adjustment")
+
+
 printf "Running tests...\n\n"
 
 
@@ -65,8 +84,9 @@ run_test() {
     fi
 }
 
+
 # Test 1: Valid commit message with body and footer
-INPUT="feat(API): Add new API endpoint
+INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add new API endpoint
 
 This adds a new API endpoint to handle user data.
 
@@ -76,7 +96,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 2: Valid commit message without body
-INPUT="fix(Database): Fix DB connection issue
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Fix DB connection issue
 
 Refs: #CU-67890"
 EXPECTED_OUTPUT=$SUCCESS_MSG
@@ -84,7 +104,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 3: Valid commit message with long description
-INPUT="chore(Backend): Update dependencies
+INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update dependencies
 
 Updated all project dependencies to the latest versions to ensure compatibility with the new security patch and improve performance.
 
@@ -102,7 +122,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 5: Invalid commit message with unrecognized type
-INPUT="wip(API): Work in progress on API endpoint
+INPUT="wip(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Work in progress on API endpoint
 
 Refs: #CU-54321"
 EXPECTED_OUTPUT=$INVALID_COMMIT_TYPE
@@ -110,7 +130,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 6: Valid commit message with correct footer format
-INPUT="fix(API): Fix bug in API response
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Fix bug in API response
 
 Refs: #12345"
 EXPECTED_OUTPUT=$SUCCESS_MSG
@@ -118,7 +138,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 7: Commit message with description exceeding character limit
-INPUT="fix(Authentication): This is an excessively long description that should fail validation because it exceeds the character limit allowed for commit messages by the script's standards
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): This is an excessively long description that should fail validation because it exceeds the character limit allowed for commit messages by the script's standards
 
 Refs: #CU-99999"
 EXPECTED_OUTPUT=$SHORT_DESC_LIMIT
@@ -126,7 +146,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 8: Invalid commit message with missing Refs footer
-INPUT="feat(Database): Add database migration script"
+INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add database migration script"
 EXPECTED_OUTPUT=$INVALID_REFS_ID
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
@@ -140,7 +160,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 10: Commit message with multiple line breaks in body
-INPUT="chore(Backend): Update testing framework
+INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update testing framework
 
 Updated the testing framework to the latest version. This ensures compatibility with the new codebase.
 
@@ -163,7 +183,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
-INPUT="feat(API): Add new API endpoint
+INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add new API endpoint
 
 Updated API to handle user data more efficiently.
 Footer without Refs"
@@ -173,7 +193,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
 
-INPUT="chore(Backend): Update testing framework
+INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update testing framework
 
 Updated the testing framework to the latest version. This ensures compatibility with the new codebase.
 
@@ -183,7 +203,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 11: Commit message with a long multiline description exceeding the allowed character limit
-INPUT="fix(Authentication): Fix multiple login issues. This update addresses multiple login-related issues, including: Fixing the broken redirect flow after login, Resolving the issue where users were not able to access their profiles after logging in
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Fix multiple login issues. This update addresses multiple login-related issues, including: Fixing the broken redirect flow after login, Resolving the issue where users were not able to access their profiles after logging in
 
 - Resolving the issue where users were not able to access their profiles after logging in
 - Improving the performance of the login API to handle higher traffic loads
@@ -196,7 +216,7 @@ EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 12: Commit message with a valid multiline description
-INPUT="feat(UI): Enhance user profile page
+INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Enhance user profile page
 
 The profile page has been enhanced to include the following changes:
 - Added a new section for displaying user achievements
@@ -214,7 +234,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
 # Test 13: Commit message with multiple paragraphs in the description
-INPUT="docs(Readme): Update README for new API features
+INPUT="docs(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update README for new API features
 
 Updated the README to include documentation for the newly added features in the API.
 
@@ -226,7 +246,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 14: Commit message with a description section that exceeds the limit
-INPUT="fix(Dashboard): Fix chart rendering issue. The chart rendering on the dashboard had an issue where data points were not displayed correctly, especially for larger datasets. 
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Fix chart rendering issue. The chart rendering on the dashboard had an issue where data points were not displayed correctly, especially for larger datasets. 
 The issue was caused by a bug in the data-fetching logic, which resulted in incomplete data being sent to the frontend. The fix ensures that all data is fetched correctly, and the chart now renders without any errors or missing data points.
 
 Refs: #CU-192837"
@@ -236,7 +256,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
 # Test 15: Commit message with a short description and long body
-INPUT="fix(UI): Fix layout bug
+INPUT="fix(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Fix layout bug
 
 The layout bug on the settings page was causing the page to display incorrectly on smaller screens. After identifying the root cause, we applied several fixes to ensure that the layout adapts properly on all screen sizes, including mobile and tablet views.
 
@@ -249,7 +269,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
 # Test 16: Commit message with a valid structure but missing Refs footer
-INPUT="chore(Tools): Update build tools
+INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update build tools
 
 The build tools were updated to ensure compatibility with the latest version of the build system. Several deprecated tools were removed from the build pipeline, and new tools were added to improve the build speed and stability.
 
