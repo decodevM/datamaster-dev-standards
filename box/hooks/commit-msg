@@ -10,6 +10,28 @@ WHITE="\033[1;37m"
 RESET="\033[0m"
 BOLD="\033[1m"
 
+
+# Define type and scope options in arrays
+TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
+SCOPES=("authentication" 
+"account-management" 
+"category-management" 
+"customer-management" 
+"customer-orders" 
+"loyalty-management" 
+"parameter-management" 
+"product-management" 
+"product-labeling" 
+"promotion-management" 
+"reports" 
+"reception" 
+"sales-return" 
+"point-of-sale" 
+"session-management" 
+"stock-management" 
+"stock-adjustment")
+
+
 # Dynamic horizontal line for styling
 print_line() {
   local length="$1"
@@ -37,7 +59,7 @@ print_commit_requirements(){
     printf "\n"
     echo -e "${BLUE}    - <description>: Starts with uppercase, max $SHORT_DESC_LENGTH chars${RESET}\n"
     echo -e "${BLUE}  Body (optional): Detailed change description (multiline supported).${RESET}\n"
-    echo -e "${BLUE}  Footer (required): ${REFS_REGEX}${RESET}\n"
+    echo -e "${BLUE}  Footer (optional): ${REFS_REGEX}${RESET}\n"
 
     # Examples
     echo -e "${MAGENTA}${BOLD}Examples:${RESET}\n"
@@ -82,29 +104,11 @@ MISSING_SHORT_DESC="❌ ERROR: Short description is missing or improperly format
 SHORT_DESC_LIMIT="❌ ERROR: Short description exceeds limit characters."
 INVALID_COMMIT_TYPE="❌ ERROR: Invalid commit type."
 INVALID_COMMIT_SCOPE="❌ ERROR: Invalid commit scope."
+MISSING_COMMIT_SCOPE="❌ ERROR: Commit scope is missing."
 INVALID_REFS_ID="❌ ERROR: Invalid 'Refs' line."
 INVALID_SHORT_DESC_CAPITAL="❌ ERROR: Short description should start with a capital letter."
 SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within the limit."
 
-# Define type and scope options in arrays
-TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
-SCOPES=("authentication" 
-"account-management" 
-"category-management" 
-"customer-management" 
-"customer-orders" 
-"loyalty-management" 
-"parameter-management" 
-"product-management" 
-"product-labeling" 
-"promotion-management" 
-"reports" 
-"reception" 
-"sales-return" 
-"point-of-sale" 
-"session-management" 
-"stock-management" 
-"stock-adjustment")
 
 
 # Generate type and scope regex dynamically (no trailing or leading spaces)
@@ -123,8 +127,8 @@ MULTILINE_DESC_REGEX="[\s\S]+"  # Matches multiline description if any
 REFS_REGEX="Refs: #[A-Za-z0-9-]+"  # Refs line regex
 
 # Combine regex for full commit message validation
-COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*$REFS_REGEX$"
-# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($)\): $SHORT_DESC_REGEX(\s*$MULTILINE_DESC_REGEX)?\s*\n*\s*$REFS_REGEX$"
+COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*($REFS_REGEX)?$"
+# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*$REFS_REGEX$"
 
 
 # Read the commit message (file or input string)
@@ -143,60 +147,83 @@ if [[ -z "$COMMIT_MSG" ]]; then
     exit 1
 fi
 
-# Extract short description
-SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
-
-# Validate short description
-if [[ -z "$SHORT_DESC" ]]; then
-  print_commit_requirements "${MISSING_SHORT_DESC}"
-  exit 1
-fi
-
-# Validate short description starts with a capital letter
-validate_short_desc_capital() {
-  if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
-    print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
-    exit 1
-  fi
-}
-
-# Check if short description exceeds the limit
-check_short_desc_length() {
-  if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
-    print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
-    exit 1
-  fi
-}
 
 # Validate the type
 validate_commit_type() {
-  TYPE=$(echo "$COMMIT_MSG" | sed -n 's/^\([a-zA-Z]*\)(.*):.*/\1/p')
-  if [[ ! " ${TYPES[@]} " =~ " ${TYPE} " ]]; then
+  # Extract the type (requires the presence of a scope)
+  TYPE=$(echo "$COMMIT_MSG" | sed -n 's/^\([a-zA-Z]*\)([^)]*):.*/\1/p')
+  
+  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
+  if [[ -z "$SCOPE" ]]; then
+    print_commit_requirements "${MISSING_COMMIT_SCOPE}"
+    exit 1
+  fi
+
+  # Check if type is valid
+  if [[ -z "$TYPE" || ! " ${TYPES[@]} " =~ " ${TYPE} " ]]; then
     print_commit_requirements "${INVALID_COMMIT_TYPE}"
     exit 1
   fi
+
+  # Ensure a scope exists
+
 }
 
 # Validate the scope
 validate_commit_scope() {
+  # Extract the scope (if any)
   SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
-  
-  if [[ ! " ${SCOPES[@]} " =~ " ${SCOPE} " ]]; then
 
+  # If the scope is not empty, validate it against the allowed list
+  if [[ -n "$SCOPE" && ! " ${SCOPES[@]} " =~ " ${SCOPE} " ]]; then
     print_commit_requirements "${INVALID_COMMIT_SCOPE}"
-
     exit 1
   fi
+
+  # If the scope is empty, it's valid since it's optional
+}
+
+validate_short_desc() {
+
+  # Extract short description
+  SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
+
+  # Validate short description
+  if [[ -z "$SHORT_DESC" ]]; then
+    print_commit_requirements "${MISSING_SHORT_DESC}"
+    exit 1
+  fi
+
+  # Validate short description starts with a capital letter
+  validate_short_desc_capital() {
+    if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
+      print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
+      exit 1
+    fi
+  }
+
+  # Check if short description exceeds the limit
+  check_short_desc_length() {
+    if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
+      print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
+      exit 1
+    fi
+  }
+
 }
 
 # Validate refs line (optional)
 validate_refs_line() {
-  if [[ ! "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
-
-    print_commit_requirements "${INVALID_REFS_ID}"
-
-    exit 1
+  # Extract the refs line (if any)
+  if [[ "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
+    # If refs are present but invalid, show an error
+    if [[ ! "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
+      print_commit_requirements "${INVALID_REFS_ID}"
+      exit 1
+    fi
   fi
+
+  # If refs are not present, it's valid since it's optional
 }
 
 # Validate full commit message format using regex
@@ -215,6 +242,7 @@ validate_commit_message() {
 # Run validations
 validate_commit_type
 validate_commit_scope
+validate_short_desc
 validate_short_desc_capital
 check_short_desc_length
 validate_refs_line

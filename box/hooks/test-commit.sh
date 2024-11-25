@@ -45,6 +45,7 @@ MISSING_SHORT_DESC="❌ ERROR: Short description is missing or improperly format
 SHORT_DESC_LIMIT="❌ ERROR: Short description exceeds limit characters."
 INVALID_COMMIT_TYPE="❌ ERROR: Invalid commit type."
 INVALID_COMMIT_SCOPE="❌ ERROR: Invalid commit scope."
+MISSING_COMMIT_SCOPE="❌ ERROR: Commit scope is missing."
 INVALID_REFS_ID="❌ ERROR: Invalid 'Refs' line."
 INVALID_SHORT_DESC_CAPITAL="❌ ERROR: Short description should start with a capital letter."
 SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within the limit."
@@ -117,7 +118,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 INPUT="feat: Add new feature
 
 Refs: #CU-98765"
-EXPECTED_OUTPUT=$INVALID_COMMIT_TYPE
+EXPECTED_OUTPUT=$MISSING_COMMIT_SCOPE
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
@@ -145,10 +146,10 @@ EXPECTED_OUTPUT=$SHORT_DESC_LIMIT
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
-# Test 8: Invalid commit message with missing Refs footer
+# Test 8: Valid commit message with missing Refs footer
 INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add database migration script"
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 9: Invalid commit message with an unrecognized scope
@@ -187,8 +188,8 @@ INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add new API endpoint
 
 Updated API to handle user data more efficiently.
 Footer without Refs"
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
@@ -268,7 +269,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
-# Test 16: Commit message with a valid structure but missing Refs footer
+# Test 16: Commit message with a valid structure
 INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update build tools
 
 The build tools were updated to ensure compatibility with the latest version of the build system. Several deprecated tools were removed from the build pipeline, and new tools were added to improve the build speed and stability.
@@ -276,8 +277,8 @@ The build tools were updated to ensure compatibility with the latest version of 
 This update should result in faster build times and fewer issues during the build process in future releases.
 
 " 
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Add more tests as needed...
