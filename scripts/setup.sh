@@ -154,4 +154,3 @@ rm -rf "$TEMPLATE_DIR"
 
 # 🎉 Done
 print_message "$COLOR_GREEN" "$MESSAGE_DONE"
-
