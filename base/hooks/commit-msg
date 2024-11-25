@@ -37,7 +37,7 @@ print_commit_requirements(){
     printf "\n"
     echo -e "${BLUE}    - <description>: Starts with uppercase, max $SHORT_DESC_LENGTH chars${RESET}\n"
     echo -e "${BLUE}  Body (optional): Detailed change description (multiline supported).${RESET}\n"
-    echo -e "${BLUE}  Footer (required): ${REFS_REGEX}${RESET}\n"
+    echo -e "${BLUE}  Footer (optional): ${REFS_REGEX}${RESET}\n"
 
     # Examples
     echo -e "${MAGENTA}${BOLD}Examples:${RESET}\n"
@@ -99,7 +99,6 @@ SCOPES=("Authentication"
 "Github" 
 "GitHub")
 
-
 # Generate type and scope regex dynamically (no trailing or leading spaces)
 TYPE_REGEX=$(IFS=\|; echo "${TYPES[*]}")
 SCOPE_REGEX=$(IFS=\|; echo "${SCOPES[*]}")
@@ -116,8 +115,8 @@ MULTILINE_DESC_REGEX="[\s\S]+"  # Matches multiline description if any
 REFS_REGEX="Refs: #[A-Za-z0-9-]+"  # Refs line regex
 
 # Combine regex for full commit message validation
-COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*$REFS_REGEX$"
-# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($)\): $SHORT_DESC_REGEX(\s*$MULTILINE_DESC_REGEX)?\s*\n*\s*$REFS_REGEX$"
+COMMIT_MSG_PATTERN="^($TYPE_REGEX)(\(($SCOPE_REGEX)\))?:\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*($REFS_REGEX)?$"
+# COMMIT_MSG_PATTERN="^($TYPE_REGEX)\(($SCOPE_REGEX)\):\s*($SHORT_DESC_REGEX)(\s*$MULTILINE_DESC_REGEX)?\s*$REFS_REGEX$"
 
 
 # Read the commit message (file or input string)
@@ -172,24 +171,30 @@ validate_commit_type() {
 
 # Validate the scope
 validate_commit_scope() {
+  # Extract the scope (if any)
   SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
-  
-  if [[ ! " ${SCOPES[@]} " =~ " ${SCOPE} " ]]; then
 
+  # If the scope is not empty, validate it against the allowed list
+  if [[ -n "$SCOPE" && ! " ${SCOPES[@]} " =~ " ${SCOPE} " ]]; then
     print_commit_requirements "${INVALID_COMMIT_SCOPE}"
-
     exit 1
   fi
+
+  # If the scope is empty, it's valid since it's optional
 }
 
 # Validate refs line (optional)
 validate_refs_line() {
-  if [[ ! "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
-
-    print_commit_requirements "${INVALID_REFS_ID}"
-
-    exit 1
+  # Extract the refs line (if any)
+  if [[ "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
+    # If refs are present but invalid, show an error
+    if [[ ! "$COMMIT_MSG" =~ $REFS_REGEX ]]; then
+      print_commit_requirements "${INVALID_REFS_ID}"
+      exit 1
+    fi
   fi
+
+  # If refs are not present, it's valid since it's optional
 }
 
 # Validate full commit message format using regex

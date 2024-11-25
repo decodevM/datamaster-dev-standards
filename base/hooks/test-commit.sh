@@ -139,10 +139,10 @@ EXPECTED_OUTPUT=$SHORT_DESC_LIMIT
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
-# Test 8: Invalid commit message with missing Refs footer
+# Test 8: Valid commit message with missing Refs footer
 INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add database migration script"
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Test 9: Invalid commit message with an unrecognized scope
@@ -181,8 +181,8 @@ INPUT="feat(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Add new API endpoint
 
 Updated API to handle user data more efficiently.
 Footer without Refs"
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
@@ -262,7 +262,7 @@ EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 
-# Test 16: Commit message with a valid structure but missing Refs footer
+# Test 16: Commit message with a valid structure
 INPUT="chore(${SCOPES[RANDOM % ${#SCOPES[@]}]}): Update build tools
 
 The build tools were updated to ensure compatibility with the latest version of the build system. Several deprecated tools were removed from the build pipeline, and new tools were added to improve the build speed and stability.
@@ -270,8 +270,8 @@ The build tools were updated to ensure compatibility with the latest version of 
 This update should result in faster build times and fewer issues during the build process in future releases.
 
 " 
-EXPECTED_OUTPUT=$INVALID_REFS_ID
-EXPECTED_EXIT_CODE="1"
+EXPECTED_OUTPUT=$SUCCESS_MSG
+EXPECTED_EXIT_CODE="0"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
 # Add more tests as needed...

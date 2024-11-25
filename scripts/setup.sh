@@ -47,8 +47,8 @@ fi
 
 # 🌀 Ask the user to choose a configuration template
 print_message "$COLOR_YELLOW" "$MESSAGE_CHOOSE_TEMPLATE"
-echo "1) box"
-echo "2) task"
+print_message "$COLOR_GREEN" "1) Box"
+print_message "$COLOR_GREEN" "2) Task"
 read -p "Enter the number of your choice: " template_choice
 
 case "$template_choice" in
