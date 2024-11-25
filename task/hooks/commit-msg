@@ -101,6 +101,7 @@ SCOPES=("authentication"
 
 
 
+
 # Generate type and scope regex dynamically (no trailing or leading spaces)
 TYPE_REGEX=$(IFS=\|; echo "${TYPES[*]}")
 SCOPE_REGEX=$(IFS=\|; echo "${SCOPES[*]}")
