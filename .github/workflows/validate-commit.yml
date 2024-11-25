@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - '*'  # Trigger on all branches
-      
-  pull_request:
-    branches:
-      - main  # Trigger only for pull requests targeting the main branch    
 
 jobs:
   validate-commit-message:
