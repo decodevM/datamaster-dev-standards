@@ -10,6 +10,18 @@ WHITE="\033[1;37m"
 RESET="\033[0m"
 BOLD="\033[1m"
 
+# Define type and scope options in arrays
+TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
+SCOPES=("authentication" 
+"account-management" 
+"settings-management" 
+"diver" 
+"purchase" 
+"inventory" 
+"labeling" 
+"stock-adjustment" 
+"zone-replenishment")
+
 # Dynamic horizontal line for styling
 print_line() {
   local length="$1"
@@ -82,23 +94,10 @@ MISSING_SHORT_DESC="❌ ERROR: Short description is missing or improperly format
 SHORT_DESC_LIMIT="❌ ERROR: Short description exceeds limit characters."
 INVALID_COMMIT_TYPE="❌ ERROR: Invalid commit type."
 INVALID_COMMIT_SCOPE="❌ ERROR: Invalid commit scope."
+MISSING_COMMIT_SCOPE="❌ ERROR: Commit scope is missing."
 INVALID_REFS_ID="❌ ERROR: Invalid 'Refs' line."
 INVALID_SHORT_DESC_CAPITAL="❌ ERROR: Short description should start with a capital letter."
 SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within the limit."
-
-# Define type and scope options in arrays
-TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
-SCOPES=("authentication" 
-"account-management" 
-"settings-management" 
-"diver" 
-"purchase" 
-"inventory" 
-"labeling" 
-"stock-adjustment" 
-"zone-replenishment")
-
-
 
 
 
@@ -139,17 +138,25 @@ if [[ -z "$COMMIT_MSG" ]]; then
 fi
 
 
-
-# Extract short description
-SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
-
 # Validate the type
 validate_commit_type() {
-  TYPE=$(echo "$COMMIT_MSG" | sed -n 's/^\([a-zA-Z]*\)(.*):.*/\1/p')
-  if [[ ! " ${TYPES[@]} " =~ " ${TYPE} " ]]; then
+  # Extract the type (requires the presence of a scope)
+  TYPE=$(echo "$COMMIT_MSG" | sed -n 's/^\([a-zA-Z]*\)([^)]*):.*/\1/p')
+  
+  SCOPE=$(echo "$COMMIT_MSG" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*$/\1/p')
+  if [[ -z "$SCOPE" ]]; then
+    print_commit_requirements "${MISSING_COMMIT_SCOPE}"
+    exit 1
+  fi
+
+  # Check if type is valid
+  if [[ -z "$TYPE" || ! " ${TYPES[@]} " =~ " ${TYPE} " ]]; then
     print_commit_requirements "${INVALID_COMMIT_TYPE}"
     exit 1
   fi
+
+  # Ensure a scope exists
+
 }
 
 # Validate the scope
@@ -167,27 +174,32 @@ validate_commit_scope() {
 }
 
 validate_short_desc() {
+
+  # Extract short description
+  SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
+
   # Validate short description
   if [[ -z "$SHORT_DESC" ]]; then
     print_commit_requirements "${MISSING_SHORT_DESC}"
     exit 1
   fi
-}
 
-# Validate short description starts with a capital letter
-validate_short_desc_capital() {
-  if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
-    print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
-    exit 1
-  fi
-}
+  # Validate short description starts with a capital letter
+  validate_short_desc_capital() {
+    if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
+      print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
+      exit 1
+    fi
+  }
 
-# Check if short description exceeds the limit
-check_short_desc_length() {
-  if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
-    print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
-    exit 1
-  fi
+  # Check if short description exceeds the limit
+  check_short_desc_length() {
+    if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
+      print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
+      exit 1
+    fi
+  }
+
 }
 
 # Validate refs line (optional)

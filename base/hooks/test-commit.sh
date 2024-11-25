@@ -39,6 +39,7 @@ MISSING_SHORT_DESC="❌ ERROR: Short description is missing or improperly format
 SHORT_DESC_LIMIT="❌ ERROR: Short description exceeds limit characters."
 INVALID_COMMIT_TYPE="❌ ERROR: Invalid commit type."
 INVALID_COMMIT_SCOPE="❌ ERROR: Invalid commit scope."
+MISSING_COMMIT_SCOPE="❌ ERROR: Commit scope is missing."
 INVALID_REFS_ID="❌ ERROR: Invalid 'Refs' line."
 INVALID_SHORT_DESC_CAPITAL="❌ ERROR: Short description should start with a capital letter."
 SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within the limit."
@@ -111,7 +112,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 INPUT="feat: Add new feature
 
 Refs: #CU-98765"
-EXPECTED_OUTPUT=$INVALID_COMMIT_TYPE
+EXPECTED_OUTPUT=$MISSING_COMMIT_SCOPE
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
