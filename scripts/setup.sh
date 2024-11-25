@@ -7,7 +7,6 @@ COLOR_RED="\033[1;31m"
 COLOR_YELLOW="\033[1;33m"
 
 # Define the URL of the template repository containing the Git hooks and GitHub Actions files
-#TEMPLATE_REPO_URL="https://github.com/decodevM/git-message-standards.git"
 TEMPLATE_REPO_URL="https://github.com/decodevM/datamaster-dev-standards.git"
 TEMPLATE_DIR="datamaster-dev-standards"
 
@@ -15,11 +14,13 @@ TEMPLATE_DIR="datamaster-dev-standards"
 MESSAGE_INIT_REPO="❌  .git directory not found. Please initialize the git repository first using 'git init'."
 MESSAGE_CLONE_REPO="Cloning the template repository from"
 MESSAGE_CLONE_FAILED="❌  Failed to clone the template repository. Please check the URL and try again."
+MESSAGE_CHOOSE_TEMPLATE="Choose a configuration template:"
 MESSAGE_COPY_ACTIONS="Copying GitHub Actions templates to the current repository..."
 MESSAGE_COPY_HOOKS="Copying Git hooks to .git/hooks..."
 MESSAGE_SET_PERMISSIONS="Setting permissions for the Git hooks..."
 MESSAGE_SETUP_COMPLETE="✅  Git hooks and GitHub Actions templates have been successfully set up."
 MESSAGE_DONE="🎉 Setup complete! You're all set to start enforcing Git message standards in your project."
+MESSAGE_INVALID_CHOICE="❌ Invalid choice. Please run the script again and choose a valid option."
 
 # 🌟 Function to print styled messages
 print_message() {
@@ -34,7 +35,7 @@ fi
 
 rm -rf "$TEMPLATE_DIR"
 
-# 🔥 Cloning the template repository
+# 🔥 Clone the template repository
 print_message "$COLOR_YELLOW" "$MESSAGE_CLONE_REPO $TEMPLATE_REPO_URL..."
 git clone "$TEMPLATE_REPO_URL" "$TEMPLATE_DIR"
 
@@ -44,56 +45,71 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 📂 Move into the template repository directory
-cd "$TEMPLATE_DIR" || exit
+# 🌀 Ask the user to choose a configuration template
+print_message "$COLOR_YELLOW" "$MESSAGE_CHOOSE_TEMPLATE"
+echo "1) box"
+echo "2) task"
+read -p "Enter the number of your choice: " template_choice
 
-# 📑 Copy the GitHub Actions files to the main project directory, but check if they exist first
-if [ -d "../.github" ]; then
+case "$template_choice" in
+  1)
+    CONFIG_DIR="box"
+    ;;
+  2)
+    CONFIG_DIR="task"
+    ;;
+  *)
+    print_message "$COLOR_RED" "$MESSAGE_INVALID_CHOICE"
+    exit 1
+    ;;
+esac
+
+# 📂 Copy the selected configuration
+cd "$TEMPLATE_DIR/$CONFIG_DIR" || exit
+
+# 📑 Copy the GitHub Actions files
+if [ -d "../../.github" ]; then
   read -p "⚠️ .github directory exists. Do you want to overwrite it? (y/n): " overwrite_actions
   if [[ "$overwrite_actions" == "y" || "$overwrite_actions" == "Y" ]]; then
     print_message "$COLOR_YELLOW" "$MESSAGE_COPY_ACTIONS"
-    rm -rf ../.github  # Remove the existing .github directory
-    mkdir ../.github   # Recreate the .github directory to avoid the "not a directory" error
-    cp -r .github/* ../.github/  # Copy the new GitHub Actions folder from the template
+    rm -rf ../../.github  # Remove existing .github directory
+    mkdir ../../.github   # Recreate the .github directory
+    cp -r .github/* ../../.github/
   else
     print_message "$COLOR_GREEN" "💡 Skipping .github directory overwrite."
   fi
 else
   print_message "$COLOR_YELLOW" "$MESSAGE_COPY_ACTIONS"
-  mkdir ../.github   # Create the .github directory if it doesn't exist
-  cp -r .github/* ../.github/  # Copy GitHub Actions folder if it doesn't exist
+  mkdir ../../.github
+  cp -r .github/* ../../.github/
 fi
 
-# 🔑 Copy the contents of the hooks directory to the existing .git/hooks
-if [ -d "../.git/hooks" ]; then
+# 🔑 Copy the Git hooks
+if [ -d "../../.git/hooks" ]; then
   read -p "⚠️ .git/hooks directory exists. Do you want to overwrite it? (y/n): " overwrite_hooks
   if [[ "$overwrite_hooks" == "y" || "$overwrite_hooks" == "Y" ]]; then
     print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
-    cp -r hooks/* ../.git/hooks/  # Copy only the contents of the hooks directory
+    cp -r hooks/* ../../.git/hooks/
     print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
-    chmod -R +x ../.git/hooks/*  # Ensure all scripts in the hooks directory are executable
+    chmod -R +x ../../.git/hooks/*
   else
     print_message "$COLOR_GREEN" "💡 Skipping .git/hooks directory overwrite."
   fi
 else
   print_message "$COLOR_YELLOW" "$MESSAGE_COPY_HOOKS"
-  cp -r hooks/* ../.git/hooks/  # Copy only the contents of the hooks directory
+  cp -r hooks/* ../../.git/hooks/
   print_message "$COLOR_YELLOW" "$MESSAGE_SET_PERMISSIONS"
-  chmod -R +x ../.git/hooks/*  # Ensure all scripts in the hooks directory are executable
+  chmod -R +x ../../.git/hooks/*
 fi
 
-# 🛠️ Set the appropriate permissions for the Git hooks (if needed)
-# This was already handled in the above logic where hooks are copied
-
-# 🔄 Go back to the main repository folder
-cd ..
+# 🔄 Return to the main repository folder
+cd ../../..
 
 # ✅ Confirm the setup
 print_message "$COLOR_GREEN" "$MESSAGE_SETUP_COMPLETE"
 
-# 🧹 Optionally, you can remove the template repository directory after setup
-# Uncomment the line below if you want to remove the template repo after setup
- rm -rf "$TEMPLATE_DIR"
+# 🧹 Optionally, remove the template repository after setup
+rm -rf "$TEMPLATE_DIR"
 
 # 🎉 Done
 print_message "$COLOR_GREEN" "$MESSAGE_DONE"
