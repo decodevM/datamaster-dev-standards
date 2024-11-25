@@ -143,30 +143,6 @@ if [[ -z "$COMMIT_MSG" ]]; then
     exit 1
 fi
 
-# Extract short description
-SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
-
-# Validate short description
-if [[ -z "$SHORT_DESC" ]]; then
-  print_commit_requirements "${MISSING_SHORT_DESC}"
-  exit 1
-fi
-
-# Validate short description starts with a capital letter
-validate_short_desc_capital() {
-  if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
-    print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
-    exit 1
-  fi
-}
-
-# Check if short description exceeds the limit
-check_short_desc_length() {
-  if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
-    print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
-    exit 1
-  fi
-}
 
 # Validate the type
 validate_commit_type() {
@@ -189,6 +165,35 @@ validate_commit_scope() {
   fi
 
   # If the scope is empty, it's valid since it's optional
+}
+
+validate_short_desc() {
+
+  # Extract short description
+  SHORT_DESC=$(echo "$COMMIT_MSG" | sed -n 's/^[^:]*: \(.*\)$/\1/p' | head -n 1)
+
+  # Validate short description
+  if [[ -z "$SHORT_DESC" ]]; then
+    print_commit_requirements "${MISSING_SHORT_DESC}"
+    exit 1
+  fi
+
+  # Validate short description starts with a capital letter
+  validate_short_desc_capital() {
+    if [[ ! "$SHORT_DESC" =~ ^[A-Z] ]]; then
+      print_commit_requirements "${INVALID_SHORT_DESC_CAPITAL}"
+      exit 1
+    fi
+  }
+
+  # Check if short description exceeds the limit
+  check_short_desc_length() {
+    if (( ${#SHORT_DESC} > $SHORT_DESC_LENGTH )); then    
+      print_commit_requirements "${SHORT_DESC_LIMIT}" "${SHORT_DESC_TIP_MSG}"
+      exit 1
+    fi
+  }
+
 }
 
 # Validate refs line (optional)
@@ -221,6 +226,7 @@ validate_commit_message() {
 # Run validations
 validate_commit_type
 validate_commit_scope
+validate_short_desc
 validate_short_desc_capital
 check_short_desc_length
 validate_refs_line
