@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Task Type: BASE
+
+# Define valid scopes for the "BASE" config
+SCOPES=(
+"authentication" 
+"account-management" 
+"settings-management"
+"github-integration"
+"notification"
+"reporting"
+"analytics"
+)
+
+
 # Define styled output helpers
 RED="\033[1;31m"
 GREEN="\033[1;32m"
@@ -12,17 +26,6 @@ BOLD="\033[1m"
 
 # Define type and scope options in arrays
 TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
-SCOPES=("Authentication" 
-"Backend" 
-"API" 
-"Database" 
-"UI" 
-"Readme" 
-"Dashboard" 
-"Tools" 
-"Github" 
-"GitHub")
-
 
 
 # Dynamic horizontal line for styling

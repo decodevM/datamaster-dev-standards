@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - '*'  # Trigger on all branches
-      
+
 jobs:
   validate-commit-message:
     runs-on: ubuntu-latest

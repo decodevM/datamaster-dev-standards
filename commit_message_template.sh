@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # Define styled output helpers
 RED="\033[1;31m"
@@ -12,15 +11,7 @@ BOLD="\033[1m"
 
 # Define type and scope options in arrays
 TYPES=("feat" "fix" "docs" "style" "refactor" "perf" "test" "chore")
-SCOPES=("authentication" 
-"account-management" 
-"settings-management" 
-"diver" 
-"purchase" 
-"inventory" 
-"labeling" 
-"stock-adjustment" 
-"zone-replenishment")
+
 
 # Dynamic horizontal line for styling
 print_line() {

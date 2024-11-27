@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # Define styled output helpers
 RED="\033[1;31m"
@@ -14,16 +13,6 @@ BOLD="\033[1m"
 SCRIPT_PATH="./commit-msg"
 TERMINAL_WIDTH=$(tput cols)
 
-
-SCOPES=("authentication" 
-"account-management" 
-"settings-management" 
-"diver" 
-"purchase" 
-"inventory" 
-"labeling" 
-"stock-adjustment" 
-"zone-replenishment")
 
 
 printf "Running tests...\n\n"
@@ -63,6 +52,8 @@ run_test() {
 
     # Remove the temp file
     rm -f "$TMP_FILE"
+
+    
 
     # Check results
     if [[ "$OUTPUT" == *"$EXPECTED_OUTPUT"* && "$EXIT_CODE" == "$EXPECTED_EXIT_CODE" ]]; then
@@ -110,7 +101,7 @@ run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 INPUT="feat: Add new feature
 
 Refs: #CU-98765"
-EXPECTED_OUTPUT=$MISSING_COMMIT_SCOPE
+EXPECTED_OUTPUT=$INVALID_COMMIT_TYPE
 EXPECTED_EXIT_CODE="1"
 run_test "$INPUT" "$EXPECTED_OUTPUT" "$EXPECTED_EXIT_CODE"
 
