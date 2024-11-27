@@ -1,0 +1,53 @@
+name: Validate Commit Message and Check GitHub Actions Changes on PR
+
+on:
+  push:
+    branches:
+      - '*'  # Trigger on all branches
+
+jobs:
+  validate-commit-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3  # Use the latest stable version
+
+      # Step 2: Fetch the commit message
+      - name: Fetch commit message
+        run: |
+          # Fetch the commit message of the last commit
+          COMMIT_MSG=$(git log -1 --pretty=format:"%B")
+          echo "Commit Message: $COMMIT_MSG"
+          
+          # Write the commit message to commit-msg.txt
+          echo "$COMMIT_MSG" > commit-msg.txt
+
+      # Step 3: Print the contents of commit-msg.txt for debugging
+      - name: Print commit-msg.txt contents
+        run: |
+          echo "Printing commit-msg.txt contents:"
+          cat commit-msg.txt
+
+      # Step 4: Ensure the commit-msg script exists and is executable
+      - name: Check if commit-msg script exists
+        run: |
+          if [[ ! -f .github/scripts/commit-msg ]]; then
+            echo "Error: commit-msg script not found!"
+            exit 1
+          fi
+          # Make sure it's executable
+          chmod +x .github/scripts/commit-msg
+
+      # Step 5: Run the commit-msg validation script with file input
+      - name: Run commit-msg script with file input
+        run: |
+          set -e  # Stop the workflow if any command fails
+          # Run the commit-msg script to validate the message (file)
+          ./.github/scripts/commit-msg commit-msg.txt
+
+      # Step 6: Clean up temporary commit-msg.txt file (optional)
+      - name: Clean up temporary files
+        run: |
+          rm -f commit-msg.txt
