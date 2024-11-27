@@ -1,0 +1,20 @@
+# Define valid scopes for the "DMSPOS" repository
+SCOPES=(
+"authentication" 
+"account-management" 
+"category-management"
+"customer-management"
+"customer-orders"
+"loyalty-management"
+"parameter-management"
+"product-management"
+"product-labeling"
+"promotion-management"
+"reports"
+"reception"
+"sales-return"
+"point-of-sale"
+"session-management"
+"stock-management"
+"stock-adjustment"
+)
