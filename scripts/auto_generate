@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# Function to load the content of a script file
+load_script() {
+    FILE_PATH=$1
+    if [[ -f "$FILE_PATH" ]]; then
+        # Load the script source code, preserving special characters
+        cat "$FILE_PATH"
+    else
+        echo "Error: Script file '$FILE_PATH' not found."
+        exit 1
+    fi
+}
+
+# Function to generate the combined script
+generate_combined_script() {
+    REPOSITORY_NAME=$1
+    BASE_CONFIG="BASE"
+    COMMIT_MSG_TEMPLATE="commit_message_template.sh"
+    TEST_CASES_COMMIT_MSG_TEMPLATE="test_cases_commit_message_template.sh"
+
+    if [[ ! -f "$COMMIT_MSG_TEMPLATE" ]]; then
+        echo "Error: '$COMMIT_MSG_TEMPLATE' does not exist."
+        exit 1
+    fi
+
+    if [[ ! -f "$TEST_CASES_COMMIT_MSG_TEMPLATE" ]]; then
+        echo "Error: '$TEST_CASES_COMMIT_MSG_TEMPLATE' does not exist."
+        exit 1
+    fi
+    
+    # Check if the repository directory exists
+    if [[ ! -d "../$REPOSITORY_NAME" ]]; then
+        echo "Error: Repository '$REPOSITORY_NAME' does not exist."
+        read -p "Do you want to use the base configuration instead? (yes/no): " USE_BASE
+        # Convert input to lowercase for case-insensitive comparison
+        USE_BASE=$(echo "$USE_BASE" | tr '[:upper:]' '[:lower:]')
+        if [[ "$USE_BASE" =~ ^(yes|y)$ ]]; then
+            echo "Using base configuration."
+            REPOSITORY_NAME="$BASE_CONFIG"
+            if [[ ! -d "../$REPOSITORY_NAME" ]]; then
+                echo "Error: Base configuration directory does not exist."
+                exit 1
+            fi
+        else
+            echo "Operation canceled."
+            exit 1
+        fi
+    fi
+
+    # Verify the task type and set additional context if needed
+    echo "Generating script for repository: $REPOSITORY_NAME"
+
+    # Load both scripts
+    SCOPE_CONTENT=$(load_script "../$REPOSITORY_NAME/scopes.sh")
+    COMMIT_MSG_TEMPLATE_CONTENT=$(load_script "$COMMIT_MSG_TEMPLATE")
+    TEST_CASES_COMMIT_MSG_TEMPLATE_CONTENT=$(load_script "$TEST_CASES_COMMIT_MSG_TEMPLATE")
+
+    # Combine the scripts with a configurable separator
+    SCRIPT_HEADER="#!/bin/bash"
+    SCRIPT_HEADER+=$'\n\n'  # Add empty lines
+    SCRIPT_HEADER+="# Task Type: $REPOSITORY_NAME"
+    SCRIPT_HEADER+=$'\n\n'  # Add empty lines
+    SCRIPT_HEADER+="$SCOPE_CONTENT"
+    SCRIPT_HEADER+=$'\n\n'  # Add empty lines
+
+    COMMIT_MSG_COMBINED_SCRIPT="$SCRIPT_HEADER"
+    COMMIT_MSG_COMBINED_SCRIPT+="$COMMIT_MSG_TEMPLATE_CONTENT"
+    COMMIT_MSG_COMBINED_SCRIPT+=$'\n'  # Ensure a trailing newline
+
+    TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT="$SCRIPT_HEADER"
+    TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT+="$TEST_CASES_COMMIT_MSG_TEMPLATE_CONTENT"
+    TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT+=$'\n'  # Ensure a trailing newline
+
+    # Write the combined script to the output file
+    
+    rm -rf "../$REPOSITORY_NAME/.github"
+    cp -r ../.github "../$REPOSITORY_NAME/.github"
+    mkdir -p "../$REPOSITORY_NAME/hooks"
+
+    # cd "../$REPOSITORY_NAME"
+    # mkdir -p "hooks"
+    # cd ../scripts
+
+    cp update-config.sh "../$REPOSITORY_NAME/hooks/update-config.sh"
+    cp post-merge "../$REPOSITORY_NAME/hooks/post-merge"
+
+   
+    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/.github/scripts/commit-msg"
+    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/hooks/commit-msg"
+    printf "%s" "$TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/hooks/test-commit-msg"
+    
+    chmod +x "../$REPOSITORY_NAME/.github/scripts/"*
+    chmod +x "../$REPOSITORY_NAME/hooks/"*
+    
+    echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/commit-msg'."
+    echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/.github/scripts/commit-msg'."
+    echo "Test cases commit-msg for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/test-commit-msg'."
+}
+
+# Check input arguments
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <repository_name>"
+    exit 1
+fi
+
+# Execute the script generation with provided arguments
+generate_combined_script "$1"
