@@ -76,6 +76,9 @@ generate_combined_script() {
     
     rm -rf "$REPOSITORY_NAME/.github"
     cp -r .github "$REPOSITORY_NAME/.github"
+    cp -r update-config.sh "$REPOSITORY_NAME/hooks/update-config.sh"
+    cp -r post-merge "$REPOSITORY_NAME/hooks/post-merge"
+
     cd "$REPOSITORY_NAME"
     mkdir -p "hooks"
     cd ..
@@ -83,9 +86,10 @@ generate_combined_script() {
     printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "$REPOSITORY_NAME/hooks/commit-msg"
     printf "%s" "$TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT" > "$REPOSITORY_NAME/hooks/test-commit-msg"
     chmod +x "$REPOSITORY_NAME/.github/commit-msg"
-    chmod +x "$REPOSITORY_NAME/hooks/commit-msg"
-    chmod +x "$REPOSITORY_NAME/hooks/test-commit-msg"
+    # chmod +x "$REPOSITORY_NAME/hooks/commit-msg"
+    # chmod +x "$REPOSITORY_NAME/hooks/test-commit-msg"
 
+    chmod +x "$REPOSITORY_NAME/hooks/"*
     echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/commit-msg'."
     echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/.github/scripts/commit-msg'."
     echo "Test cases commit-msg for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/test-commit-msg'."

@@ -10,7 +10,7 @@ COLOR_YELLOW="\033[1;33m"
 
 # Define the URL of the template repository containing the Git hooks and GitHub Actions files
 TEMPLATE_REPO_URL="https://github.com/decodevM/datamaster-dev-standards.git"
-TEMPLATE_DIR="datamaster-dev-standards"
+TEMPLATE_DIR=".datamaster-dev-standards"
 
 # 📝 Message Definitions
 MESSAGE_INIT_REPO="❌  .git directory not found. Please initialize the git repository first using 'git init'."
@@ -34,6 +34,7 @@ if [ ! -d ".git" ]; then
   print_message "$COLOR_RED" "$MESSAGE_INIT_REPO"
   exit 1
 fi
+
 
 rm -rf "$TEMPLATE_DIR"
 
@@ -69,6 +70,18 @@ if [[ ! -d "$REPOSITORY_NAME" ]]; then
     fi
 fi
 
+
+# Add the alias to the local repository's Git configuration
+print_message "$COLOR_YELLOW" "Adding alias 'pull-update' to .git/config..."
+git config alias.pull-update '!git pull && .git/hooks/post-merge'
+
+# Verify that the alias was added
+if git config --get alias.pull-update > /dev/null; then
+  print_message "$COLOR_GREEN" "Alias 'pull-update' successfully added to .git/config!"
+else
+  print_message "$COLOR_RED" "Failed to add alias 'pull-update'."
+fi
+
 # 📂 Copy the selected configuration
 cd "$TEMPLATE_DIR/$REPOSITORY_NAME" || exit
 
@@ -81,8 +94,9 @@ cp -r .github/* ../../.github/
 
 # 🔑 Copy the Git hooks
 print_message "$COLOR_YELLOW" "Overwriting existing commit-msg hook..."
-cp hooks/commit-msg ../../.git/hooks/commit-msg
-chmod +x ../../.git/hooks/commit-msg
+cp hooks/* ../../.git/hooks/*
+chmod +x ../../.git/hooks/*
+# chmod +x ../../.git/hooks/commit-msg
 
 
 # 🔄 Return to the main repository folder
