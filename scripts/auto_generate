@@ -30,7 +30,7 @@ generate_combined_script() {
     fi
     
     # Check if the repository directory exists
-    if [[ ! -d "$REPOSITORY_NAME" ]]; then
+    if [[ ! -d "../$REPOSITORY_NAME" ]]; then
         echo "Error: Repository '$REPOSITORY_NAME' does not exist."
         read -p "Do you want to use the base configuration instead? (yes/no): " USE_BASE
         # Convert input to lowercase for case-insensitive comparison
@@ -38,7 +38,7 @@ generate_combined_script() {
         if [[ "$USE_BASE" =~ ^(yes|y)$ ]]; then
             echo "Using base configuration."
             REPOSITORY_NAME="$BASE_CONFIG"
-            if [[ ! -d "$REPOSITORY_NAME" ]]; then
+            if [[ ! -d "../$REPOSITORY_NAME" ]]; then
                 echo "Error: Base configuration directory does not exist."
                 exit 1
             fi
@@ -52,7 +52,7 @@ generate_combined_script() {
     echo "Generating script for repository: $REPOSITORY_NAME"
 
     # Load both scripts
-    SCOPE_CONTENT=$(load_script "$REPOSITORY_NAME/scopes.sh")
+    SCOPE_CONTENT=$(load_script "../$REPOSITORY_NAME/scopes.sh")
     COMMIT_MSG_TEMPLATE_CONTENT=$(load_script "$COMMIT_MSG_TEMPLATE")
     TEST_CASES_COMMIT_MSG_TEMPLATE_CONTENT=$(load_script "$TEST_CASES_COMMIT_MSG_TEMPLATE")
 
@@ -74,22 +74,25 @@ generate_combined_script() {
 
     # Write the combined script to the output file
     
-    rm -rf "$REPOSITORY_NAME/.github"
-    cp -r .github "$REPOSITORY_NAME/.github"
-    cp -r update-config.sh "$REPOSITORY_NAME/hooks/update-config.sh"
-    cp -r post-merge "$REPOSITORY_NAME/hooks/post-merge"
+    rm -rf "../$REPOSITORY_NAME/.github"
+    cp -r ../.github "../$REPOSITORY_NAME/.github"
+    mkdir -p "../$REPOSITORY_NAME/hooks"
 
-    cd "$REPOSITORY_NAME"
-    mkdir -p "hooks"
-    cd ..
-    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "$REPOSITORY_NAME/.github/scripts/commit-msg"
-    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "$REPOSITORY_NAME/hooks/commit-msg"
-    printf "%s" "$TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT" > "$REPOSITORY_NAME/hooks/test-commit-msg"
-    chmod +x "$REPOSITORY_NAME/.github/commit-msg"
-    # chmod +x "$REPOSITORY_NAME/hooks/commit-msg"
-    # chmod +x "$REPOSITORY_NAME/hooks/test-commit-msg"
+    # cd "../$REPOSITORY_NAME"
+    # mkdir -p "hooks"
+    # cd ../scripts
 
-    chmod +x "$REPOSITORY_NAME/hooks/"*
+    cp update-config.sh "../$REPOSITORY_NAME/hooks/update-config.sh"
+    cp post-merge "../$REPOSITORY_NAME/hooks/post-merge"
+
+   
+    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/.github/scripts/commit-msg"
+    printf "%s" "$COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/hooks/commit-msg"
+    printf "%s" "$TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT" > "../$REPOSITORY_NAME/hooks/test-commit-msg"
+    
+    chmod +x "../$REPOSITORY_NAME/.github/scripts/"*
+    chmod +x "../$REPOSITORY_NAME/hooks/"*
+    
     echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/commit-msg'."
     echo "Commit-msg checker for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/.github/scripts/commit-msg'."
     echo "Test cases commit-msg for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/test-commit-msg'."

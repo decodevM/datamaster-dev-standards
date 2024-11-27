@@ -49,6 +49,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+cd "$TEMPLATE_DIR" || exit
 
 if [[ ! -d "$REPOSITORY_NAME" ]]; then
     echo "Error: Repository '$REPOSITORY_NAME' does not exist."
@@ -70,6 +71,7 @@ if [[ ! -d "$REPOSITORY_NAME" ]]; then
     fi
 fi
 
+cd ..
 
 # Add the alias to the local repository's Git configuration
 print_message "$COLOR_YELLOW" "Adding alias 'pull-update' to .git/config..."
@@ -94,9 +96,8 @@ cp -r .github/* ../../.github/
 
 # 🔑 Copy the Git hooks
 print_message "$COLOR_YELLOW" "Overwriting existing commit-msg hook..."
-cp hooks/* ../../.git/hooks/*
+cp hooks/* ../../.git/hooks/
 chmod +x ../../.git/hooks/*
-# chmod +x ../../.git/hooks/commit-msg
 
 
 # 🔄 Return to the main repository folder
