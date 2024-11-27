@@ -73,7 +73,8 @@ generate_combined_script() {
     TEST_CASES_COMMIT_MSG_COMBINED_SCRIPT+=$'\n'  # Ensure a trailing newline
 
     # Write the combined script to the output file
-
+    
+    rm -rf "$REPOSITORY_NAME/.github"
     cp -r .github "$REPOSITORY_NAME/.github"
     cd "$REPOSITORY_NAME"
     mkdir -p "hooks"
