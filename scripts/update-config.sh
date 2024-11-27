@@ -24,11 +24,11 @@ print_message() {
 
 # 🔥 Clone or update the template repository
 if [ -d "$TEMPLATE_DIR" ]; then
-  # print_message "$COLOR_YELLOW" "Updating template repository..."
-  cd "$TEMPLATE_DIR" && git pull origin main && cd ..
+  # Run git pull in the background and discard output
+  cd "$TEMPLATE_DIR" && git pull origin main > /dev/null 2>&1 &
 else
-  # print_message "$COLOR_YELLOW" "Cloning the template repository..."
-  git clone "$TEMPLATE_REPO_URL" "$TEMPLATE_DIR"
+  # Run git clone in the background and discard output
+  git clone "$TEMPLATE_REPO_URL" "$TEMPLATE_DIR" > /dev/null 2>&1 &
 fi
 
 
