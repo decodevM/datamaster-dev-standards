@@ -1,49 +1,36 @@
-name: Create Release Notes
+name: Create release
 
 on:
   push:
     branches:
-      - '*'
+      - main  # Trigger when pushing to the main branch
+
+permissions:
+  contents: write
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Allow GitHub Actions to create releases
-
+    name: Release on push to main
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Ruby and dependencies
+      - name: Create a new tag
+        id: create_tag
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby-full
-          gem install github_changelog_generator
+          # Set the new tag version (you can modify this logic for versioning)
+          TAG="v$(date +'%Y.%m.%d.%H%M%S')"  # Example tag format (year.month.day.hourminute.second)
+          git tag $TAG
+          git push origin $TAG  # Push the new tag to the remote repository
+          echo "::set-output name=tag::$TAG"  # Set the tag as an output to use later
 
-      - name: Add Ruby gem bin to PATH
-        run: echo "$HOME/.gem/ruby/3.0.0/bin" >> $GITHUB_PATH  # Add Ruby gem path to GitHub Actions environment PATH
-
-      - name: Verify Installation of github_changelog_generator
-        run: |
-          which github_changelog_generator
-          github_changelog_generator --version
-
-      - name: Generate Changelog
-        id: changelog
-        run: |
-          github_changelog_generator --token ${{ secrets.GITHUB_TOKEN }} --unreleased
+      - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          body: |
-            ## Changelog
-            ${{ steps.changelog.outputs.body }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.create_tag.outputs.tag }}  # Use the created tag from previous step
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes
