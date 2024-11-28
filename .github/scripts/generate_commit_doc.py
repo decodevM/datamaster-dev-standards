@@ -20,8 +20,6 @@ class CommitParser:
             r"^(?P<type>" + type_regex + ")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
-            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
             r"$", re.DOTALL
         )
 
@@ -40,13 +38,11 @@ class CommitParser:
 
             result = match.groupdict()
             
-            # Safe string operations with null checks
+            # Return only type, scope, and title
             return {
                 "type": result.get("type", ""),
                 "scope": result.get("scope", ""),
-                "title": result.get("title", ""),
-                "body": result.get("body", "").strip() if result.get("body") else "",  # Ensure body is stripped
-                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
+                "title": result.get("title", "")
             }
             
         except Exception as e:
@@ -91,24 +87,19 @@ class CommitDocument:
         return commits
 
     def categorize_commits(self, commits):
-        categorized = {t: [] for t in self.parser.TYPES}
+        categorized = {t: {} for t in self.parser.TYPES}  # Use dictionary for each type to group by scope
         
         for commit in commits:
             message = commit["commit"]["message"]
-            author = commit["commit"]["author"]["name"]
-            date = datetime.strptime(
-                commit["commit"]["author"]["date"], 
-                "%Y-%m-%dT%H:%M:%SZ"
-            ).strftime("%d %B %Y %H:%M")
-            
             parsed = self.parser.parse(message)
             if parsed:
                 commit_info = {
-                    **parsed,
-                    "date": date,
-                    "author": author
+                    "title": parsed["title"]
                 }
-                categorized[parsed["type"]].append(commit_info)
+                # Group commits by type and then by scope
+                if parsed["scope"] not in categorized[parsed["type"]]:
+                    categorized[parsed["type"]][parsed["scope"]] = []
+                categorized[parsed["type"]][parsed["scope"]].append(commit_info)
                 
         return categorized
 
@@ -140,18 +131,12 @@ class CommitDocument:
             emoji = emojis.get(commit_type, "📌")
             doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
             
-            for commit in commits:
-                doc.extend([
-                    f"#### `{commit['scope']}` {commit['title']}",
-                    f"*{commit['author']} - {commit['date']}*\n",
-                    f"{commit['body']}\n" if commit['body'] else "",
-                    f"🔗 {', '.join(commit['refs'])}\n" if commit['refs'] else "",
-                    "---\n"
-
-
+            for scope, commits_in_scope in commits.items():
+                doc.append(f"#### `{scope}`\n")
+                for commit in commits_in_scope:
+                    doc.append(f"- {commit['title']}\n")
+                    doc.append("---\n")
                     
-                ])
-                
         return "\n".join(filter(None, doc))
 
     def save_document(self, content, filename="generated_docs/commit_document.md"):
