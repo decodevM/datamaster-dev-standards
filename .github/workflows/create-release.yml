@@ -20,8 +20,8 @@ jobs:
         id: generate_changelog
         uses: googleapis/release-please-action@v3
         with:
-          release-type: github   # Use github release type for multi-language projects
-          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # JSON format for changelog types
+          release-type: node   # Using the node release type (works with multi-language projects)
+          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # Commit types to include in changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
