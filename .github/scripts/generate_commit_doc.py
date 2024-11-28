@@ -1,88 +1,100 @@
-import os
-import subprocess
-from collections import defaultdict
+import re
+import requests
+import sys
+from datetime import datetime
 
-# Mapping commit types to sections
-COMMIT_SECTIONS = {
-    "fix": "Corrections de Bugs",       # Bug fixes
-    "feat": "Évolutions",               # New features
-    "chore": "Maintenance",             # Miscellaneous changes (tasks, updates)
-    "docs": "Documentation",            # Documentation updates
-    "refactor": "Refactorisation",      # Code refactoring
-    "test": "Tests",                    # Tests (unit tests, integration tests, etc.)
-    "perf": "Performances",             # Performance improvements
-    "build": "Build",                   # Build related changes (dependencies, etc.)
-    "ci": "Intégration continue",       # Continuous Integration/Delivery changes
-    "style": "Styles",                  # Code style changes (formatting, linting)
-    "release": "Versions",              # Release-related changes
-    "env": "Environnement",             # Environment-related changes (settings, variables)
-}
+# Get GitHub repo details from command line arguments
+REPO_OWNER = sys.argv[1]
+REPO_NAME = sys.argv[2]
+GITHUB_API_URL = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/commits'
 
-def parse_commit_message(commit):
-    """
-    Parse a commit message into type, scope, and description.
-    """
-    parts = commit.split(": ", 1)
-    if len(parts) < 2:
-        return None  # Skip invalid formats
+# Define commit types and scopes
+TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
+SCOPES = ["frontend", "backend", "api", "ui", "docs", "db", "server"]
 
-    header, description = parts
-    type_and_scope = header.split("(", 1)
-    commit_type = type_and_scope[0].strip()
-    scope = type_and_scope[1].rstrip(")") if len(type_and_scope) > 1 else None
+# Generate type and scope regex dynamically
+TYPE_REGEX = '|'.join(TYPES)  # Combine types with `|`
+SCOPE_REGEX = '|'.join(SCOPES)  # Combine scopes with `|`
 
-    return {
-        "type": commit_type,
-        "scope": scope,
-        "description": description.strip(),
-    }
+# Short description regex (matches a single line after the colon)
+SHORT_DESC_REGEX = ".*"  # Matches the short description after the colon
 
-def generate_commit_document():
-    # Ensure the output directory exists
-    output_directory = "generated_docs"
-    os.makedirs(output_directory, exist_ok=True)
+# Multiline description regex (matches additional lines, including spaces or newlines)
+MULTILINE_DESC_REGEX = "[\\s\\S]+"  # Matches multiline description if any
 
-    # File path for the commit document
-    output_file = os.path.join(output_directory, "commit_document.txt")
+# Refs regex (matches the "Refs: #[A-Za-z0-9-]+" line)
+REFS_REGEX = "Refs: #[A-Za-z0-9-]+"  # Refs line regex
 
-    try:
-        # Fetch all commits
-        result = subprocess.run(
-            ["git", "log", "--pretty=format:%s%n%b"],
-            stdout=subprocess.PIPE,
-            text=True,
-        )
+# Combine all regex components into a single commit message pattern
+COMMIT_MSG_PATTERN = rf"^({TYPE_REGEX})\(({SCOPE_REGEX})\):\s*({SHORT_DESC_REGEX})(\s*({MULTILINE_DESC_REGEX}))?\s*({REFS_REGEX})?$"
 
-        commits = result.stdout.strip().split("\n\n")
-        grouped_commits = defaultdict(list)
+# Fetch commits from GitHub
+def fetch_commits():
+    commits = []
+    page = 1
+    while True:
+        response = requests.get(GITHUB_API_URL, params={'page': page, 'per_page': 100})
+        if response.status_code != 200:
+            print("Failed to fetch commits")
+            break
+        data = response.json()
+        if not data:
+            break
+        commits.extend(data)
+        page += 1
+    return commits
 
-        # Parse commits and group them by type
-        for raw_commit in commits:
-            parsed_commit = parse_commit_message(raw_commit)
-            if parsed_commit:
-                # Get section based on the commit type
-                section = COMMIT_SECTIONS.get(parsed_commit["type"], "Autres")
-                grouped_commits[section].append(parsed_commit)
+# Parse commits and classify them based on types
+def parse_commits(commits):
+    classified_commits = {type_: [] for type_ in TYPES}
+    for commit in commits:
+        message = commit['commit']['message']
+        author = commit['commit']['author']['name']
+        date = commit['commit']['author']['date']
+        match = re.match(COMMIT_MSG_PATTERN, message)
+        if match:
+            commit_type = match.group(1)
+            commit_scope = match.group(2)  # Capture the scope from the commit message
+            short_desc = match.group(3)
+            classified_commits[commit_type].append({
+                'author': author,
+                'date': date,
+                'message': message,
+                'scope': commit_scope,  # Include scope in the output
+                'short_desc': short_desc
+            })
+    return classified_commits
 
-        # Write the document
-        with open(output_file, "w") as file:
-            file.write("Rapport des Commits\n")
-            file.write("=" * 50 + "\n")
-            file.write(f"Client : [Nom du Client]\n")
-            file.write(f"Date : {os.popen('date "+%d %B %Y"').read().strip()}\n")
-            file.write("=" * 50 + "\n\n")
+# Generate the commit log document
+def generate_commit_log(classified_commits):
+    doc_content = f"Commit Log\nGenerated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    for commit_type, commits in classified_commits.items():
+        if commits:  # Only include types with commits
+            doc_content += f"\n### {commit_type.capitalize()} Commits:\n"
+            for commit in commits:
+                doc_content += f" - **{commit['short_desc']}** (Scope: {commit['scope']}, Author: {commit['author']}, Date: {commit['date']})\n"
+                doc_content += f"   {commit['message']}\n\n"
+    return doc_content
 
-            for section, commits in grouped_commits.items():
-                file.write(f"II. {section}\n")
-                for i, commit in enumerate(commits, 1):
-                    scope_text = f"[{commit['scope']}]" if commit['scope'] else ""
-                    file.write(f"• {section.split(' ')[0]} {i}: {scope_text} {commit['description']}\n")
-                file.write("\n")
+# Save the generated document to a file
+def save_commit_log(doc_content, filename="commit_log.md"):
+    with open(filename, 'w') as f:
+        f.write(doc_content)
 
-        print(f"Commit document created at {output_file}")
+def main():
+    # Fetch commits from GitHub
+    commits = fetch_commits()
+    
+    # Parse and classify commits
+    classified_commits = parse_commits(commits)
+    
+    # Generate the commit log document
+    commit_log = generate_commit_log(classified_commits)
+    
+    # Save the commit log to a file
+    save_commit_log(commit_log)
 
-    except Exception as e:
-        print(f"An error occurred while generating the commit document: {e}")
+    print("Commit log has been generated and saved.")
 
 if __name__ == "__main__":
-    generate_commit_document()
+    main()

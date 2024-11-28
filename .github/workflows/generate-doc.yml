@@ -1,38 +1,38 @@
-name: Generate Commit Document
+name: Generate Commit Log
 
 on:
   push:
     branches:
-      - '*'  # Trigger on merges or pushes to the main branch
+      - '*'  # or any other branches you want to trigger the action for
+  workflow_dispatch:
+    inputs:
+      repo_owner:
+        description: 'GitHub Username'
+        required: true
+        default: 'your-username'  # Optional default
+      repo_name:
+        description: 'GitHub Repository Name'
+        required: true
+        default: 'your-repository'  # Optional default
 
 jobs:
-  generate-doc:
+  generate-log:
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout the repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      # Step 2: Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      # Step 3: Install dependencies (if any)
       - name: Install dependencies
-        run: pip install -r requirements.txt || true
+        run: |
+          pip install requests
 
-      # Step 4: Run the script to generate the commit document
-      - name: Generate Commit Document
-        run: python .github/scripts/generate_commit_doc.py
-
-      # Step 5: Upload the generated document
-      - name: Upload Commit Document
-        uses: actions/upload-artifact@v4
-        with:
-          name: commit-document
-          path: generated_docs/commit_document.txt
+      - name: Fetch and generate commit log
+        run: |
+          python .github/scripts/generate_commit_doc.py "${{ github.event.inputs.repo_owner }}" "${{ github.event.inputs.repo_name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
