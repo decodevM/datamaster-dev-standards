@@ -3,7 +3,7 @@ name: Create release
 on:
   push:
     branches:
-      - '*'  # Trigger on push to main branch
+      - main  # Trigger on push to main branch
 
 permissions:
   contents: write
@@ -28,9 +28,18 @@ jobs:
       - name: Create release with GitHub changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.create_tag.outputs.tag }}  # Use the created tag from previous step
+          tag: ${{ steps.create_tag.outputs.tag }}  # Use the created tag from the previous step
         run: |
+          changelog=$(gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes)  # Generate the changelog notes
+
+          echo "Changelog generated for release $tag:"
+          echo "$changelog"
+
+          # Create the release with the generated changelog in the body
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --generate-notes  # Automatically generate the changelog between the tag and the previous release
+              --body "$changelog"  # Use the changelog in the release body
