@@ -29,7 +29,7 @@ jobs:
         run: python .github/scripts/generate_commit_doc.py
 
       - name: Upload commit log as an artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: commit-log
           path: generated_docs/commit_document.md

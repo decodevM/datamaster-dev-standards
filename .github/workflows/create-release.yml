@@ -1,0 +1,36 @@
+name: Create release
+
+on:
+  push:
+    branches:
+      - '*'  # Trigger when pushing to the main branch
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release on push to main
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create a new tag
+        id: create_tag
+        run: |
+          # Set the new tag version (you can modify this logic for versioning)
+          TAG="v$(date +'%Y.%m.%d.%H%M%S')"  # Example tag format (year.month.day.hourminute.second)
+          git tag $TAG
+          git push origin $TAG  # Push the new tag to the remote repository
+          echo "::set-output name=tag::$TAG"  # Set the tag as an output to use later
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.create_tag.outputs.tag }}  # Use the created tag from previous step
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes
