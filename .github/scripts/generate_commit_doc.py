@@ -20,8 +20,8 @@ class CommitParser:
             r"^(?P<type>" + type_regex + ")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:\n\n(?P<body>(?:(?!Refs:).)*))?"
-            r"(?:\n\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",
+            r"(?:\n\n(?P<body>(?:(?!Refs:).)*))?"  # Capture the body if it exists
+            r"(?:\n\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",  # Capture the footer (refs)
             re.DOTALL
         )
 
@@ -45,8 +45,8 @@ class CommitParser:
                 "type": result.get("type", ""),
                 "scope": result.get("scope", ""),
                 "title": result.get("title", ""),
-                "body": result.get("body", "").strip() if result.get("body") else "",
-                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
+                "body": result.get("body", "").strip() if result.get("body") else "",  # Handle body
+                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []  # Handle refs
             }
             
         except Exception as e:
