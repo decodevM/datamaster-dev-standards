@@ -3,6 +3,11 @@ import re
 from datetime import datetime
 import requests
 from typing import Dict, Optional, List
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class CommitParser:
     def __init__(self):
@@ -12,29 +17,41 @@ class CommitParser:
     def _create_commit_pattern(self):
         type_regex = "|".join(self.TYPES)
         return re.compile(
-            r"^(?P<type>" + type_regex + ")"  # Type
-            r"\((?P<scope>[^)]+)\):\s*"       # Scope
-            r"(?P<title>[^\n]+)"              # Title
-            r"(?:\n\n(?P<body>(?:(?!Refs:).)*))?"  # Body (optional)
-            r"(?:\n\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",  # Refs (optional)
+            r"^(?P<type>" + type_regex + ")"
+            r"\((?P<scope>[^)]+)\):\s*"
+            r"(?P<title>[^\n]+)"
+            r"(?:\n\n(?P<body>(?:(?!Refs:).)*))?"
+            r"(?:\n\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",
             re.DOTALL
         )
 
     def parse(self, message: str) -> Optional[Dict]:
-        match = self.commit_pattern.match(message.strip())
-        if not match:
+        try:
+            if not message or not isinstance(message, str):
+                logger.warning(f"Invalid message format: {message}")
+                return None
+
+            message = message.strip()
+            match = self.commit_pattern.match(message)
+            
+            if not match:
+                logger.debug(f"No match found for message: {message}")
+                return None
+
+            result = match.groupdict()
+            
+            # Safe string operations with null checks
+            return {
+                "type": result.get("type", ""),
+                "scope": result.get("scope", ""),
+                "title": result.get("title", ""),
+                "body": result.get("body", "").strip() if result.get("body") else "",
+                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
+            }
+            
+        except Exception as e:
+            logger.error(f"Error parsing commit message: {e}")
             return None
-
-        result = match.groupdict()
-        
-        # Clean up the components
-        result['body'] = result.get('body', '').strip()
-        if result.get('refs'):
-            result['refs'] = [ref.strip() for ref in result['refs'].split(',')]
-        else:
-            result['refs'] = []
-
-        return result
 
 class CommitDocument:
     def __init__(self):
@@ -54,22 +71,23 @@ class CommitDocument:
         page = 1
         
         while True:
-            response = requests.get(
-                url, 
-                headers=headers,
-                params={"sha": branch, "page": page}
-            )
-            
-            if response.status_code != 200:
-                break
+            try:
+                response = requests.get(
+                    url, 
+                    headers=headers,
+                    params={"sha": branch, "page": page}
+                )
+                response.raise_for_status()
                 
-            data = response.json()
-            if not data:
-                break
+                data = response.json()
+                if not data:
+                    break
+                    
+                commits.extend(data)
+                page += 1
                 
-            commits.extend(data)
-            page += 1
-            
+            except Exception as e:
+                logger.error(f"Error fetching commits: {e}")
         return commits
 
     def categorize_commits(self, commits):
