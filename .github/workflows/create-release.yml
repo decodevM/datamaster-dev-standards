@@ -16,11 +16,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create a new tag
+      - name: Generate Unique Tag
         id: create_tag
         run: |
           # Set the new tag version (you can modify this logic for versioning)
           TAG="v$(date +'%Y.%m.%d.%H%M%S')"  # Example tag format (year.month.day.hourminute.second)
+          
+          # Check if the tag already exists
+          if git show-ref --tags | grep -q "refs/tags/$TAG"; then
+            echo "Tag $TAG already exists. Exiting..."
+            exit 1
+          fi
+          
+          # Create the new tag and push it to the remote repository
           git tag $TAG
           git push origin $TAG  # Push the new tag to the remote repository
           echo "::set-output name=tag::$TAG"  # Set the tag as an output to use later
