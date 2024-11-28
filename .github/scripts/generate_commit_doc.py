@@ -82,7 +82,7 @@ def categorize_commits(commits):
 
     return categorized_commits
 
-# Function to generate the commit log document in Markdown format
+# Function to generate the commit log in the format you requested
 def generate_commit_log(categorized_commits):
     today_date = datetime.now().strftime("%d %B %Y")
     client_name = "Client Name"  # Change to the client name if needed
@@ -96,7 +96,16 @@ def generate_commit_log(categorized_commits):
         if categorized_commits[commit_type]:
             commit_log += f"### {commit_type.capitalize()}s\n"
             for idx, commit in enumerate(categorized_commits[commit_type], start=1):
-                commit_log += f"#### {commit_type.capitalize()} {idx}: {commit['message']}\n\n"
+                # Prepare the commit message according to the new format
+                commit_message = commit['message']
+                commit_log += f"{commit_type.capitalize()} {idx}: ({commit['scope']})\n"
+                commit_log += f"    Description: {commit_message}\n"
+                
+                if commit['refs']:  # Check for references
+                    commit_log += f"    Refs: {commit['refs']}\n"
+                
+                commit_log += f"    Date: {commit['date']}\n"
+                commit_log += f"    Author: {commit['author']}\n\n"
     
     return commit_log
 
