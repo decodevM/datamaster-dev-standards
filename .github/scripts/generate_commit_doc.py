@@ -135,7 +135,6 @@ class CommitDocument:
                 doc.append(f"#### `{scope}`\n")
                 for commit in commits_in_scope:
                     doc.append(f"- {commit['title']}\n")
-                    doc.append("---\n")
                     
         return "\n".join(filter(None, doc))
 
