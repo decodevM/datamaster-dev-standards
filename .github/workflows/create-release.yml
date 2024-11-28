@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write  # Allow GitHub Actions to create releases
       issues: write     # Allow writing to issues (for changelog generation)
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,8 +20,8 @@ jobs:
         id: generate_changelog
         uses: googleapis/release-please-action@v3
         with:
-          release-type: node   # Change to a valid release type like `node` or `python`
-          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # JSON format
+          release-type: github   # Use github release type for multi-language projects
+          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # JSON format for changelog types
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
