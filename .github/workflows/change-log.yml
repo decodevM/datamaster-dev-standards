@@ -1,18 +1,16 @@
-
-
-name: Changelog CI
-
+name: Generate Changelog
 on:
   push:
-    branches:
-      - '*'
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  changelog:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Run Changelog CI
-        uses: saadmk11/changelog-ci@v1.1.2
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Generate Changelog
+        uses: TriPSs/conventional-changelog-action@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
