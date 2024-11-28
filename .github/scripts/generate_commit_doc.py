@@ -131,7 +131,7 @@ class CommitDocument:
         doc = [
             "# 📄 Commit Report",
             f"*Generated on {today}*\n",
-            "## 🏢 Project Commits\n"
+            "## 🏢 Project Changelogs\n"
         ]
         
         for commit_type in self.parser.TYPES:
@@ -140,7 +140,7 @@ class CommitDocument:
                 continue
                 
             emoji = emojis.get(commit_type, "📌")
-            doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
+            doc.append(f"## {emoji} {commit_type.capitalize()}s\n")
             
             for scope, commits_in_scope in commits.items():
                 doc.append(f"#### `{scope}`\n")
