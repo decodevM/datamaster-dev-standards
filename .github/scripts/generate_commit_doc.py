@@ -60,6 +60,7 @@ def generate_commit_document():
         for raw_commit in commits:
             parsed_commit = parse_commit_message(raw_commit)
             if parsed_commit:
+                # Get section based on the commit type
                 section = COMMIT_SECTIONS.get(parsed_commit["type"], "Autres")
                 grouped_commits[section].append(parsed_commit)
 
