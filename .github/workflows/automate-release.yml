@@ -27,7 +27,7 @@ jobs:
 
       # Step 4: Install Semantic Release Globally
       - name: Install semantic-release
-        run: npm install -g semantic-release
+        run: npm install semantic-release@latest --no-audit --silent
 
       # Step 5: Configure Git User for the Release
       - name: Configure Git User
