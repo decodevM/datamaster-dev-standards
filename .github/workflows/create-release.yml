@@ -36,16 +36,19 @@ jobs:
       - name: Get Previous Tag (Handle empty repo gracefully)
         id: get_previous_tag
         run: |
+          # Fetch tags in the repo
+          git fetch --tags
+          
           # Get the list of tags
           TAGS=$(git tag -l)
 
           if [ -z "$TAGS" ]; then
-            # If there are no tags, set a flag and leave the changelog empty
+            # If no tags exist, it's the first release, so set an empty previous_tag
             echo "::set-output name=previous_tag::"
             echo "::set-output name=is_first_release::true"
           else
-            # Get the previous tag (the tag before the current one)
-            PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "$TAG" | head -n 1)
+            # Get the previous tag by sorting tags and excluding the current one
+            PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n 2 | tail -n 1)
             echo "::set-output name=previous_tag::$PREVIOUS_TAG"
             echo "::set-output name=is_first_release::false"
           fi
