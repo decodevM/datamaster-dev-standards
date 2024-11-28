@@ -39,27 +39,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.create_tag.outputs.tag }}  # Get the tag from previous step
         run: |
-          # Get the previous tag name (e.g., v2024.11.28.140000)
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$tag^")
+          # Check if the repository has tags
+          TAGS=$(git tag)
           
-          # Fetch commits between the previous and current tag
-          COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG".."$tag")
+          # Get the previous tag name
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null)
 
-          # Initialize changelog
-          changelog="### What's Changed\n"
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # If no previous tag, use an empty string for the changelog
+            changelog="### What's Changed\nNo previous release found. This is the first release."
+          else
+            # Fetch commits between the previous and current tag
+            COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG".."$tag")
 
-          # Loop over commits and filter by type (e.g., feat, style, etc.)
-          for commit in $COMMITS; do
-            # Check for commit types (e.g., feat, style)
-            if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
-              type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
-              scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
-              description=${BASH_REMATCH[3]}  # commit description
-              changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-            else
-              changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-            fi
-          done
+            # Initialize changelog
+            changelog="### What's Changed\n"
+
+            # Loop over commits and filter by type (e.g., feat, style, etc.)
+            for commit in $COMMITS; do
+              # Check for commit types (e.g., feat, style)
+              if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
+                type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
+                scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
+                description=${BASH_REMATCH[3]}  # commit description
+                changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+              else
+                changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+              fi
+            done
+          fi
 
           # Save changelog to output
           echo "::set-output name=changelog::$changelog"
