@@ -18,8 +18,8 @@ COMMIT_MSG_PATTERN = f"^({TYPE_REGEX})\\((.*?)\\):\\s*({SHORT_DESC_REGEX})(\\s*{
 # GitHub API details
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Make sure GITHUB_TOKEN is set in GitHub secrets
-REPO_OWNER = os.getenv('GITHUB_REPOSITORY').split('/')[0]  # Get owner from the environment variable
-REPO_NAME = os.getenv('GITHUB_REPOSITORY').split('/')[1]    # Get repo name from the environment variable
+REPO_OWNER = os.getenv('REPO_OWNER')  # Get owner from the environment variable
+REPO_NAME = os.getenv('REPO_NAME')    # Get repo name from the environment variable
 
 # Function to get commits from the repository
 def get_commits(owner, repo, branch="main"):
@@ -114,14 +114,20 @@ def save_commit_log(doc_content, filename="generated_docs/commit_document.md"):
 
 # Main function to fetch commits, categorize them, and generate the log
 def main():
+    # Fetch commits from the repository
     commits = get_commits(REPO_OWNER, REPO_NAME)
     print(f"Fetched {len(commits)} commits")  # Debugging: check how many commits are fetched
+    
+    # Categorize the fetched commits
     categorized_commits = categorize_commits(commits)
+    
+    # Generate commit log in Markdown format
     commit_log = generate_commit_log(categorized_commits)
     
     if not any(categorized_commits.values()):  # Check if no commits were categorized
         print("No commits matched the pattern")
     else:
+        # Save the generated commit log to a Markdown file
         save_commit_log(commit_log)
         print("Commit log generated successfully as Markdown!")
 
