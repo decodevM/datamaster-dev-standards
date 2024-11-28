@@ -19,24 +19,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Use a version compatible with semantic-release
+          node-version: '16'  # Ensure compatibility with semantic-release
 
       # Step 3: Install Dependencies
       - name: Install Dependencies
         run: npm ci
 
-      # Step 4: Install Semantic Release Globally
-      - name: Install semantic-release
-        run: npm install semantic-release@latest --no-audit --silent
-
-      # Step 5: Configure Git User for the Release
-      - name: Configure Git User
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      # Step 6: Run semantic-release
+      # Step 4: Run semantic-release via GitHub Action
       - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required to push tags and releases
-        run: semantic-release
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+          # Automatically provided GitHub Token
+          github_token: ${{ secrets.GITHUB_TOKEN }}
