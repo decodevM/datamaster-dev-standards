@@ -1,0 +1,6 @@
+#!/bin/bash
+# Trigger the update script after a merge or pull
+pwd
+cd .git/hooks
+chmod +x update-config.sh
+bash update-config.sh
