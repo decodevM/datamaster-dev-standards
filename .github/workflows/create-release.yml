@@ -23,7 +23,7 @@ jobs:
           TAG="v$(date +'%Y.%m.%d.%H%M%S')"
           
           # Check if the tag already exists remotely
-          if gh release view "$TAG" --repo="$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists remotely. Exiting..."
             exit 1
           fi
@@ -36,16 +36,16 @@ jobs:
       - name: Get Previous Tag (Handle empty repo gracefully)
         id: get_previous_tag
         run: |
-          # Get the previous tag name (e.g., v2024.11.28.140000)
+          # Get the list of tags
           TAGS=$(git tag -l)
-          
+
           if [ -z "$TAGS" ]; then
             # If there are no tags, set a flag and leave the changelog empty
             echo "::set-output name=previous_tag::"
             echo "::set-output name=is_first_release::true"
           else
             # Get the previous tag (the tag before the current one)
-            PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$TAG^")
+            PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "$TAG" | head -n 1)
             echo "::set-output name=previous_tag::$PREVIOUS_TAG"
             echo "::set-output name=is_first_release::false"
           fi
