@@ -50,23 +50,36 @@ def categorize_commits(commits):
         author = commit["commit"]["author"]["name"]
         date = commit["commit"]["author"]["date"]
         sha = commit["sha"]
+
+        # Debugging: print commit message to check if we're fetching the correct data
+        print(f"Commit: {message}")
         
         # Check if the commit message matches the pattern
         match = re.match(COMMIT_MSG_PATTERN, message)
         if match:
+            # Check if the commit message matches the expected format
             commit_type = match.group(1)
-            scope = match.group(2)  # Dynamically capture the scope from the commit message
+            
+            # Check if scope exists, if not, set it to None or some default value
+            scope = match.group(2) if match.group(2) else None
+            
+            # Short description can be directly captured from the third group
             short_description = match.group(3)
-            # Optionally handle the multiline description and refs
-            multiline_description = match.group(4) or ""
-            refs = match.group(5) or ""
+            
+            # Handle multiline description if any
+            multiline_description = match.group(4) if match.group(4) else ""
+            
+            # Handle refs if present
+            refs = match.group(5) if match.group(5) else ""
 
             # Prepare the commit message
             commit_message = f"**Message:** {message}\n**Date:** {date}\n**Author:** {author}\n**SHA:** {sha}\n{multiline_description}\n{refs}"
 
             # Append the commit message to the corresponding type array
             categorized_commits[commit_type].append({"scope": scope, "message": commit_message})
-    
+        else:
+            print(f"Skipped (no match): {message}")  # Debugging: if commit message doesn't match regex
+
     return categorized_commits
 
 # Function to generate the commit log document in Markdown format
@@ -98,6 +111,7 @@ def save_commit_log(doc_content, filename="generated_docs/commit_document.md"):
 # Main function to fetch commits, categorize them, and generate the log
 def main():
     commits = get_commits(REPO_OWNER, REPO_NAME)
+    print(f"Fetched {len(commits)} commits")  # Debugging: check how many commits are fetched
     categorized_commits = categorize_commits(commits)
     commit_log = generate_commit_log(categorized_commits)
     save_commit_log(commit_log)
