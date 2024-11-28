@@ -83,6 +83,7 @@ jobs:
                   type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
                   scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
                   description=${BASH_REMATCH[3]}  # commit description
+                  changelog+="${BASH_REMATCH}\n"
                   changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
                 else
                   changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
