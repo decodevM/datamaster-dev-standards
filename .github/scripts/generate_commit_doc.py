@@ -147,6 +147,9 @@ class CommitDocument:
                     f"{commit['body']}\n" if commit['body'] else "",
                     f"🔗 {', '.join(commit['refs'])}\n" if commit['refs'] else "",
                     "---\n"
+
+
+                    
                 ])
                 
         return "\n".join(filter(None, doc))
