@@ -64,6 +64,7 @@ class CommitDocument:
         }
         
         commits = []
+        seen_hashes = set()  # Track unique commit hashes
         page = 1
         
         while True:
@@ -78,12 +79,19 @@ class CommitDocument:
                 data = response.json()
                 if not data:
                     break
-                    
-                commits.extend(data)
+                
+                for commit in data:
+                    commit_hash = commit["sha"]
+                    if commit_hash not in seen_hashes:
+                        commits.append(commit)
+                        seen_hashes.add(commit_hash)  # Mark as seen
+
                 page += 1
                 
             except Exception as e:
                 logger.error(f"Error fetching commits: {e}")
+                break  # Exit on error to prevent infinite loop
+                
         return commits
 
     def categorize_commits(self, commits):
