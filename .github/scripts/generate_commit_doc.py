@@ -114,8 +114,12 @@ def main():
     print(f"Fetched {len(commits)} commits")  # Debugging: check how many commits are fetched
     categorized_commits = categorize_commits(commits)
     commit_log = generate_commit_log(categorized_commits)
-    save_commit_log(commit_log)
-    print("Commit log generated successfully as Markdown!")
+    
+    if not any(categorized_commits.values()):  # Check if no commits were categorized
+        print("No commits matched the pattern")
+    else:
+        save_commit_log(commit_log)
+        print("Commit log generated successfully as Markdown!")
 
 # Run the script
 if __name__ == "__main__":
