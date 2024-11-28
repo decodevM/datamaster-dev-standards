@@ -3,7 +3,7 @@ name: Release Automation
 on:
   push:
     branches:
-      - '*'  # Trigger the workflow when there are commits pushed to the main branch.
+      - '*'
 
 jobs:
   release:
@@ -11,26 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js Environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Ensure compatibility with semantic-release
+          node-version: '16' # Ensure compatibility with your dependencies
 
       - name: Install Dependencies
-        run: npm install
-        
-      # Step 3: Install Dependencies
-      - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm install semantic-release --no-audit --silent
+          npm install # Install other dependencies
 
-      # Step 4: Run semantic-release via GitHub Action
       - name: Run semantic-release
-        uses: cycjimmy/semantic-release-action@v3
-        with:
-          # Automatically provided GitHub Token
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
