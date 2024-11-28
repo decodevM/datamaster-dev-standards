@@ -20,8 +20,8 @@ jobs:
         id: generate_changelog
         uses: googleapis/release-please-action@v3
         with:
-          release-type: github
-          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # Use JSON array format
+          release-type: node   # Change to a valid release type like `node` or `python`
+          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # JSON format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
