@@ -98,11 +98,51 @@ generate_combined_script() {
     echo "Test cases commit-msg for repository '$REPOSITORY_NAME' successfully created at '$REPOSITORY_NAME/hooks/test-commit-msg'."
 }
 
-# Check input arguments
+# # Check input arguments
+# if [[ $# -lt 1 ]]; then
+#     echo "Usage: $0 <repository_name>"
+#     exit 1
+# fi
+
+# # Execute the script generation with provided arguments
+# generate_combined_script "$1"
+
+
+
+# Check if arguments are provided
 if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <repository_name>"
+    echo "Usage: $0 <repository_name> or $0 -all"
     exit 1
 fi
 
-# Execute the script generation with provided arguments
-generate_combined_script "$1"
+# Handle the `-all` argument
+if [[ "$1" == "-all" ]]; then
+    echo "Applying changes to all repositories..."
+
+    for DIR in ../*; do
+        REPO_NAME=$(basename "$DIR")
+        # Skip the 'scripts' folder
+        if [[ "$REPO_NAME" == "scripts" ]]; then
+            continue
+        fi
+
+        # Ensure it's a directory
+        if [[ -d "$DIR" ]]; then
+            # Pass the repository name to the generation function
+            generate_combined_script "$REPO_NAME"
+        fi
+    done
+
+else
+    # Handle the specific repository case
+    REPOSITORY_NAME=$1
+
+    # Check if the provided repository exists
+    if [[ ! -d "../$REPOSITORY_NAME" ]]; then
+        echo "Error: Repository '$REPOSITORY_NAME' does not exist."
+        exit 1
+    fi
+
+    # Generate the script for the provided repository
+    generate_combined_script "$REPOSITORY_NAME"
+fi
