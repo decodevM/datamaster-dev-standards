@@ -19,10 +19,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ruby-full
-          gem install github_changelog_generator --user-install  # Install for the current user
+          gem install github_changelog_generator
 
-      - name: Add the Ruby bin directory to PATH
-        run: echo "$HOME/.gem/ruby/3.0.0/bin" >> $GITHUB_PATH  # Ensure that the gem executables are in PATH
+      - name: Add Ruby gem bin to PATH
+        run: echo "$HOME/.gem/ruby/3.0.0/bin" >> $GITHUB_PATH  # Add Ruby gem path to GitHub Actions environment PATH
+
+      - name: Verify Installation of github_changelog_generator
+        run: |
+          which github_changelog_generator
+          github_changelog_generator --version
 
       - name: Generate Changelog
         id: changelog
