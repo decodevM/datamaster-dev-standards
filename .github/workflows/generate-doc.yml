@@ -3,20 +3,10 @@ name: Generate Commit Log
 on:
   push:
     branches:
-      - '*'  # or any other branches you want to trigger the action for
-  workflow_dispatch:
-    inputs:
-      repo_owner:
-        description: 'GitHub Username'
-        required: true
-        default: 'your-username'  # Optional default
-      repo_name:
-        description: 'GitHub Repository Name'
-        required: true
-        default: 'your-repository'  # Optional default
+      - '*'
 
 jobs:
-  generate-log:
+  generate-commit-log:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -31,15 +21,11 @@ jobs:
         run: |
           pip install requests
 
-      - name: Fetch and generate commit log
-        run: |
-          python .github/scripts/generate_commit_doc.py "${{ github.event.inputs.repo_owner }}" "${{ github.event.inputs.repo_name }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run the commit log generation script
+        run: python .github/scripts/generate_commit_doc.py
 
-          # Step 5: Upload the generated document
-      - name: Upload Commit Document
-        uses: actions/upload-artifact@v4
+      - name: Upload commit log as an artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: commit-document
-          path: generated_docs/commit_document.txt
+          name: commit-log
+          path: generated_docs/commit_document.md
