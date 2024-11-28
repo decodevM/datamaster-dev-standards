@@ -10,18 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Allow GitHub Actions to create releases
-      issues: write     # Allow writing to issues (for changelog generation)
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Auto-generate Release Notes
-        id: generate_changelog
-        uses: googleapis/release-please-action@v3
-        with:
-          release-type: node   # Using the node release type (works with multi-language projects)
-          changelog-types: '["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]'  # Commit types to include in changelog
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          gem install github_changelog_generator
+          github_changelog_generator --token ${{ secrets.GITHUB_TOKEN }} --unreleased
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -31,6 +29,8 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           release_name: ${{ github.ref_name }}
-          body: ${{ steps.generate_changelog.outputs.body }}
+          body: |
+            ## Changelog
+            ${{ steps.changelog.outputs.body }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
