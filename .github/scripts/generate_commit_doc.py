@@ -103,10 +103,14 @@ def generate_commit_log(categorized_commits):
 # Function to save the commit log to a Markdown file
 def save_commit_log(doc_content, filename="generated_docs/commit_document.md"):
     # Ensure the directory exists
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    dir_name = os.path.dirname(filename)
+    if not os.path.exists(dir_name):
+        print(f"Creating directory: {dir_name}")
+        os.makedirs(dir_name, exist_ok=True)
     
     with open(filename, 'w') as f:
         f.write(doc_content)
+    print(f"Commit log saved to: {filename}")
 
 # Main function to fetch commits, categorize them, and generate the log
 def main():
