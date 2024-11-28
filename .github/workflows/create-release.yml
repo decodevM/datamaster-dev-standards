@@ -18,8 +18,11 @@ jobs:
       - name: Install Ruby and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install ruby-full
+          sudo apt-get install -y ruby-full
           gem install github_changelog_generator --user-install  # Install for the current user
+
+      - name: Add the Ruby bin directory to PATH
+        run: echo "$HOME/.gem/ruby/3.0.0/bin" >> $GITHUB_PATH  # Ensure that the gem executables are in PATH
 
       - name: Generate Changelog
         id: changelog
