@@ -10,7 +10,7 @@ TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
 TYPE_REGEX = "|".join(TYPES)
 SHORT_DESC_REGEX = ".*"
 MULTILINE_DESC_REGEX = "[\\s\\S]+"  # Multiline description
-REFS_REGEX = "Refs: #[A-Za-z0-9-]+"
+REFS_REGEX = "Refs: #[A-Za-z0-9-]+"  # Ensure proper capture for Refs
 
 # Commit message pattern to match
 COMMIT_MSG_PATTERN = f"^({TYPE_REGEX})\\((.*?)\\):\\s*({SHORT_DESC_REGEX})(\\s*{MULTILINE_DESC_REGEX})?\\s*({REFS_REGEX})?$"
@@ -76,7 +76,7 @@ def categorize_commits(commits):
             commit_message = f"**Message:** {message}\n**Date:** {date}\n**Author:** {author}\n**SHA:** {sha}\n{multiline_description}\n{refs}"
 
             # Append the commit message to the corresponding type array
-            categorized_commits[commit_type].append({"scope": scope, "message": commit_message})
+            categorized_commits[commit_type].append({"scope": scope, "message": commit_message, "refs": refs, "date": date, "author": author})
         else:
             print(f"Skipped (no match): {message}")  # Debugging: if commit message doesn't match regex
 
@@ -101,7 +101,8 @@ def generate_commit_log(categorized_commits):
                 commit_log += f"{commit_type.capitalize()} {idx}: ({commit['scope']})\n"
                 commit_log += f"    Description: {commit_message}\n"
                 
-                if commit['Refs']:  # Check for references
+                # Check for refs and add them to the commit log
+                if commit['refs']:
                     commit_log += f"    Refs: {commit['refs']}\n"
                 
                 commit_log += f"    Date: {commit['date']}\n"
