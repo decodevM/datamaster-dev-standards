@@ -1,5 +1,31 @@
 import os
 import subprocess
+from collections import defaultdict
+
+# Commit types mapping to sections
+COMMIT_SECTIONS = {
+    "fix": "Corrections de Bugs",
+    "feat": "Évolutions",
+}
+
+def parse_commit_message(commit):
+    """
+    Parse a commit message into type, scope, and description.
+    """
+    parts = commit.split(": ", 1)
+    if len(parts) < 2:
+        return None  # Skip invalid formats
+
+    header, description = parts
+    type_and_scope = header.split("(", 1)
+    commit_type = type_and_scope[0].strip()
+    scope = type_and_scope[1].rstrip(")") if len(type_and_scope) > 1 else None
+
+    return {
+        "type": commit_type,
+        "scope": scope,
+        "description": description.strip(),
+    }
 
 def generate_commit_document():
     # Ensure the output directory exists
@@ -10,19 +36,37 @@ def generate_commit_document():
     output_file = os.path.join(output_directory, "commit_document.txt")
 
     try:
-        # Run the git log command to get commit history
+        # Fetch the commits from the current push
         result = subprocess.run(
-            ["git", "log", "--pretty=format:%h | %an | %ad | %s", "--date=short"],
+            ["git", "log", "--pretty=format:%s%n%b"],
             stdout=subprocess.PIPE,
             text=True,
         )
 
-        # Write the commit history to a file
+        commits = result.stdout.split("\n\n")
+        grouped_commits = defaultdict(list)
+
+        # Parse commits and group them
+        for raw_commit in commits:
+            parsed_commit = parse_commit_message(raw_commit)
+            if parsed_commit:
+                section = COMMIT_SECTIONS.get(parsed_commit["type"], "Autres")
+                grouped_commits[section].append(parsed_commit)
+
+        # Write the document
         with open(output_file, "w") as file:
-            file.write("Commit History Document\n")
+            file.write("Rapport des Commits\n")
             file.write("=" * 50 + "\n")
-            file.write("Format: <Commit Hash> | <Author> | <Date> | <Message>\n\n")
-            file.write(result.stdout)
+            file.write(f"Client : [Nom du Client]\n")
+            file.write(f"Date : {os.popen('date "+%d %B %Y"').read().strip()}\n")
+            file.write("=" * 50 + "\n\n")
+
+            for section, commits in grouped_commits.items():
+                file.write(f"II. {section}\n")
+                for i, commit in enumerate(commits, 1):
+                    scope_text = f"[{commit['scope']}]" if commit['scope'] else ""
+                    file.write(f"• Bug {i}: {scope_text} {commit['description']}\n")
+                file.write("\n")
 
         print(f"Commit document created at {output_file}")
 
