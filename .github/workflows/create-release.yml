@@ -3,7 +3,7 @@ name: Create release
 on:
   push:
     branches:
-      - '*'  # Trigger on push to main branch
+      - 'main'  # Trigger on push to main branch
 
 permissions:
   contents: write
@@ -33,23 +33,38 @@ jobs:
           git push origin $TAG
           echo "::set-output name=tag::$TAG"  # Pass tag as an output
 
+      - name: Get Previous Tag (Handle empty repo gracefully)
+        id: get_previous_tag
+        run: |
+          # Get the previous tag name (e.g., v2024.11.28.140000)
+          TAGS=$(git tag -l)
+          
+          if [ -z "$TAGS" ]; then
+            # If there are no tags, set a flag and leave the changelog empty
+            echo "::set-output name=previous_tag::"
+            echo "::set-output name=is_first_release::true"
+          else
+            # Get the previous tag
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0)
+            echo "::set-output name=previous_tag::$PREVIOUS_TAG"
+            echo "::set-output name=is_first_release::false"
+          fi
+
       - name: Generate Changelog Dynamically
         id: generate_changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.create_tag.outputs.tag }}  # Get the tag from previous step
         run: |
-          # Check if the repository has tags
-          TAGS=$(git tag)
-          
-          # Get the previous tag name
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null)
+          # Get the previous tag from the output of the previous step
+          PREVIOUS_TAG="${{ steps.get_previous_tag.outputs.previous_tag }}"
+          IS_FIRST_RELEASE="${{ steps.get_previous_tag.outputs.is_first_release }}"
 
-          if [ -z "$PREVIOUS_TAG" ]; then
-            # If no previous tag, use an empty string for the changelog
+          if [ "$IS_FIRST_RELEASE" == "true" ]; then
+            # If it's the first release, display a message indicating it's the first release
             changelog="### What's Changed\nNo previous release found. This is the first release."
           else
-            # Fetch commits between the previous and current tag
+            # If there are previous tags, get the commit messages between the previous tag and the current tag
             COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG".."$tag")
 
             # Initialize changelog
