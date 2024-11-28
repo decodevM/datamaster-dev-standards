@@ -1,14 +1,20 @@
 name: Create Release Notes
+
 on:
   push:
     branches:
       - '*'
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow GitHub Actions to create releases
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
