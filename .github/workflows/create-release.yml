@@ -15,10 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install Ruby and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install ruby-full
+          gem install github_changelog_generator --user-install  # Install for the current user
+
       - name: Generate Changelog
         id: changelog
         run: |
-          gem install github_changelog_generator
           github_changelog_generator --token ${{ secrets.GITHUB_TOKEN }} --unreleased
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
