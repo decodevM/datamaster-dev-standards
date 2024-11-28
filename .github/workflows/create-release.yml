@@ -19,36 +19,59 @@ jobs:
       - name: Generate Unique Tag
         id: create_tag
         run: |
-          # Set the new tag version (you can modify this logic for versioning)
-          TAG="v$(date +'%Y.%m.%d.%H%M%S')"  # Example tag format (year.month.day.hourminute.second)
-
+          # Generate a tag based on the current timestamp
+          TAG="v$(date +'%Y.%m.%d.%H%M%S')"
+          
           # Check if the tag already exists remotely
           if gh release view "$TAG" --repo="$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "Tag $TAG already exists remotely. Exiting..."
             exit 1
           fi
 
-          # Create the new tag and push it to the remote repository
+          # Create and push the tag to remote
           git tag $TAG
-          git push origin $TAG  # Push the new tag to the remote repository
-          echo "::set-output name=tag::$TAG"  # Set the tag as an output to use later
+          git push origin $TAG
+          echo "::set-output name=tag::$TAG"  # Pass tag as an output
 
-      - name: Create release with GitHub changelog
+      - name: Generate Changelog Dynamically
+        id: generate_changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.create_tag.outputs.tag }}  # Use the created tag from the previous step
+          tag: ${{ steps.create_tag.outputs.tag }}  # Get the tag from previous step
         run: |
-          # Generate the changelog using GitHub CLI and capture it
-          changelog=$(gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --generate-notes)  # Generate the changelog notes
+          # Get the previous tag name (e.g., v2024.11.28.140000)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$tag^")
+          
+          # Fetch commits between the previous and current tag
+          COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG".."$tag")
 
-          echo "Changelog generated for release $tag:"
-          echo "$changelog"
+          # Initialize changelog
+          changelog="### What's Changed\n"
 
-          # Create the release with the generated changelog notes in the release body
+          # Loop over commits and filter by type (e.g., feat, style, etc.)
+          for commit in $COMMITS; do
+            # Check for commit types (e.g., feat, style)
+            if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
+              type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
+              scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
+              description=${BASH_REMATCH[3]}  # commit description
+              changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+            else
+              changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+            fi
+          done
+
+          # Save changelog to output
+          echo "::set-output name=changelog::$changelog"
+
+      - name: Create Release with Changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          changelog: ${{ steps.generate_changelog.outputs.changelog }}
+          tag: ${{ steps.create_tag.outputs.tag }}  # Tag from the previous step
+        run: |
+          # Create the release with the dynamically generated changelog
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --notes "$changelog"  # Use the generated changelog as the release notes
+              --notes "$changelog"  # Use dynamically generated changelog
