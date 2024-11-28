@@ -70,18 +70,22 @@ jobs:
             # Initialize changelog
             changelog="### What's Changed\n"
 
-            # Loop over commits and filter by type (e.g., feat, style, etc.)
-            for commit in $COMMITS; do
-              # Check for commit types (e.g., feat, style)
-              if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
-                type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
-                scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
-                description=${BASH_REMATCH[3]}  # commit description
-                changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-              else
-                changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-              fi
-            done
+            if [ -z "$COMMITS" ]; then
+              changelog+="No changes between $PREVIOUS_TAG and $tag"
+            else
+              # Loop over commits and filter by type (e.g., feat, style, etc.)
+              for commit in $COMMITS; do
+                # Check for commit types (e.g., feat, style)
+                if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
+                  type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
+                  scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
+                  description=${BASH_REMATCH[3]}  # commit description
+                  changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+                else
+                  changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
+                fi
+              done
+            fi
           fi
 
           # Save changelog to output
