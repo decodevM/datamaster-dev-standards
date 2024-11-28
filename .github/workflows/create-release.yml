@@ -44,8 +44,8 @@ jobs:
             echo "::set-output name=previous_tag::"
             echo "::set-output name=is_first_release::true"
           else
-            # Get the previous tag
-            PREVIOUS_TAG=$(git describe --tags --abbrev=0)
+            # Get the previous tag (the tag before the current one)
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$TAG^")
             echo "::set-output name=previous_tag::$PREVIOUS_TAG"
             echo "::set-output name=is_first_release::false"
           fi
