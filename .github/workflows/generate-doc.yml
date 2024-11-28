@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - '*'  # Trigger on merges to the main branch
-    #   - main  # Trigger on merges to the main branch
 
 jobs:
   generate-doc:
@@ -31,7 +30,7 @@ jobs:
 
       # Step 5: Upload the generated commit document as an artifact
       - name: Upload Commit Document
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: commit-document
           path: generated_docs/commit_document.txt
