@@ -107,9 +107,9 @@ class CommitDocument:
             
             for idx, commit in enumerate(commits, 1):
                 doc.extend([
-                    f"{commit_type.capitalize()} {idx}: ({commit['scope']}) {commit['title']}",
-                    f"    Description: {commit['description']}" if commit['description'] else "",
-                    f"    Date: {commit['date']}",
+                    f"{commit_type.capitalize()} {idx}: ({commit['scope']}) {commit['title']}\n",
+                    f"    Description: {commit['description']}\n\n" if commit['description'] else "",
+                    f"    Date: {commit['date']}\n",
                     f"    Author: {commit['author']}\n"
                 ])
                 
