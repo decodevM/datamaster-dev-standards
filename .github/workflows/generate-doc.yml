@@ -36,3 +36,10 @@ jobs:
           python .github/scripts/generate_commit_doc.py "${{ github.event.inputs.repo_owner }}" "${{ github.event.inputs.repo_name }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Step 5: Upload the generated document
+      - name: Upload Commit Document
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-document
+          path: generated_docs/commit_document.txt
