@@ -21,13 +21,13 @@ jobs:
         run: |
           # Set the new tag version (you can modify this logic for versioning)
           TAG="v$(date +'%Y.%m.%d.%H%M%S')"  # Example tag format (year.month.day.hourminute.second)
-          
-          # Check if the tag already exists
-          if git show-ref --tags | grep -q "refs/tags/$TAG"; then
-            echo "Tag $TAG already exists. Exiting..."
+
+          # Check if the tag already exists remotely
+          if gh release view "$TAG" --repo="$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Tag $TAG already exists remotely. Exiting..."
             exit 1
           fi
-          
+
           # Create the new tag and push it to the remote repository
           git tag $TAG
           git push origin $TAG  # Push the new tag to the remote repository
