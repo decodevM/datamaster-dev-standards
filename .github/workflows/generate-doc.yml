@@ -36,5 +36,3 @@ jobs:
         with:
           name: commit-document
           path: generated_docs/commit_document.txt
-
-          
