@@ -2,11 +2,20 @@ import os
 import subprocess
 from collections import defaultdict
 
-# Mapping commit types to document sections
+# Mapping commit types to sections
 COMMIT_SECTIONS = {
-    "fix": "Corrections de Bugs",
-    "feat": "Évolutions",
-    # Add more mappings as needed
+    "fix": "Corrections de Bugs",       # Bug fixes
+    "feat": "Évolutions",               # New features
+    "chore": "Maintenance",             # Miscellaneous changes (tasks, updates)
+    "docs": "Documentation",            # Documentation updates
+    "refactor": "Refactorisation",      # Code refactoring
+    "test": "Tests",                    # Tests (unit tests, integration tests, etc.)
+    "perf": "Performances",             # Performance improvements
+    "build": "Build",                   # Build related changes (dependencies, etc.)
+    "ci": "Intégration continue",       # Continuous Integration/Delivery changes
+    "style": "Styles",                  # Code style changes (formatting, linting)
+    "release": "Versions",              # Release-related changes
+    "env": "Environnement",             # Environment-related changes (settings, variables)
 }
 
 def parse_commit_message(commit):
@@ -37,9 +46,9 @@ def generate_commit_document():
     output_file = os.path.join(output_directory, "commit_document.txt")
 
     try:
-        # Fetch commits from the current push only
+        # Fetch all commits
         result = subprocess.run(
-            ["git", "log", "HEAD^..HEAD", "--pretty=format:%s%n%b"],
+            ["git", "log", "--pretty=format:%s%n%b"],
             stdout=subprocess.PIPE,
             text=True,
         )
