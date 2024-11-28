@@ -2,10 +2,11 @@ import os
 import subprocess
 from collections import defaultdict
 
-# Commit types mapping to sections
+# Mapping commit types to document sections
 COMMIT_SECTIONS = {
     "fix": "Corrections de Bugs",
     "feat": "Évolutions",
+    # Add more mappings as needed
 }
 
 def parse_commit_message(commit):
@@ -36,17 +37,17 @@ def generate_commit_document():
     output_file = os.path.join(output_directory, "commit_document.txt")
 
     try:
-        # Fetch the commits from the current push
+        # Fetch commits from the current push only
         result = subprocess.run(
-            ["git", "log", "--pretty=format:%s%n%b"],
+            ["git", "log", "HEAD^..HEAD", "--pretty=format:%s%n%b"],
             stdout=subprocess.PIPE,
             text=True,
         )
 
-        commits = result.stdout.split("\n\n")
+        commits = result.stdout.strip().split("\n\n")
         grouped_commits = defaultdict(list)
 
-        # Parse commits and group them
+        # Parse commits and group them by type
         for raw_commit in commits:
             parsed_commit = parse_commit_message(raw_commit)
             if parsed_commit:
@@ -65,7 +66,7 @@ def generate_commit_document():
                 file.write(f"II. {section}\n")
                 for i, commit in enumerate(commits, 1):
                     scope_text = f"[{commit['scope']}]" if commit['scope'] else ""
-                    file.write(f"• Bug {i}: {scope_text} {commit['description']}\n")
+                    file.write(f"• {section.split(' ')[0]} {i}: {scope_text} {commit['description']}\n")
                 file.write("\n")
 
         print(f"Commit document created at {output_file}")
