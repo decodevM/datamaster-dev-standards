@@ -64,7 +64,7 @@ class CommitDocument:
         }
         
         commits = []
-        seen_hashes = set()  # Track unique commit hashes
+        seen_commit_data = set()  # Track unique (type, scope, title) tuples
         page = 1
         
         while True:
@@ -81,11 +81,14 @@ class CommitDocument:
                     break
                 
                 for commit in data:
-                    commit_hash = commit["sha"]
-                    if commit_hash not in seen_hashes:
-                        commits.append(commit)
-                        seen_hashes.add(commit_hash)  # Mark as seen
-
+                    message = commit["commit"]["message"]
+                    parsed = self.parser.parse(message)
+                    if parsed:
+                        commit_key = (parsed["type"], parsed["scope"], parsed["title"])
+                        if commit_key not in seen_commit_data:
+                            commits.append(commit)
+                            seen_commit_data.add(commit_key)  # Mark as seen
+                    
                 page += 1
                 
             except Exception as e:
