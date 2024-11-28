@@ -101,7 +101,7 @@ def generate_commit_log(categorized_commits):
                 commit_log += f"{commit_type.capitalize()} {idx}: ({commit['scope']})\n"
                 commit_log += f"    Description: {commit_message}\n"
                 
-                if commit['refs']:  # Check for references
+                if commit['Refs']:  # Check for references
                     commit_log += f"    Refs: {commit['refs']}\n"
                 
                 commit_log += f"    Date: {commit['date']}\n"
