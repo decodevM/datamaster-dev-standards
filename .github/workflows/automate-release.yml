@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '16'  # Ensure compatibility with semantic-release
 
+      - name: Install Dependencies
+        run: npm install
+        
       # Step 3: Install Dependencies
       - name: Install Dependencies
         run: npm ci
