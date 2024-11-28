@@ -20,9 +20,9 @@ class CommitParser:
             r"^(?P<type>" + type_regex + ")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:\n\n(?P<body>(?:(?!Refs:).)*))?"  # Capture the body if it exists
-            r"(?:\n\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",  # Capture the footer (refs)
-            re.DOTALL
+            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
+            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
+            r"$", re.DOTALL
         )
 
     def parse(self, message: str) -> Optional[Dict]:
@@ -45,8 +45,8 @@ class CommitParser:
                 "type": result.get("type", ""),
                 "scope": result.get("scope", ""),
                 "title": result.get("title", ""),
-                "body": result.get("body", "").strip() if result.get("body") else "",  # Handle body
-                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []  # Handle refs
+                "body": result.get("body", "").strip() if result.get("body") else "",  # Ensure body is stripped
+                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
             }
             
         except Exception as e:
@@ -147,6 +147,9 @@ class CommitDocument:
                     f"{commit['body']}\n" if commit['body'] else "",
                     f"🔗 {', '.join(commit['refs'])}\n" if commit['refs'] else "",
                     "---\n"
+
+
+                    
                 ])
                 
         return "\n".join(filter(None, doc))
