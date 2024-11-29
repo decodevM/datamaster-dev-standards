@@ -2,7 +2,7 @@ import os
 
 from base_interfaces import CommitDocumentManager
 from commit_fetcher import CommitFetcher
-from .basic_commit_parser import CommitParser
+from basic_commit_parser import CommitParser
 from report_generator_factory import ReportGeneratorFactory
 from datetime import datetime
 import logging

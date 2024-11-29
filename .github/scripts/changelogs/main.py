@@ -2,7 +2,7 @@ import os
 import logging
 
 from commit_fetcher import GitHubCommitFetcher
-from .basic_commit_parser import BasicCommitParser
+from basic_commit_parser import BasicCommitParser
 from enhanced_commit_document_manager import EnhancedCommitDocumentManager
 
 

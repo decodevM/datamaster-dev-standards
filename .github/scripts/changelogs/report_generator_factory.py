@@ -1,5 +1,5 @@
-from .markdown_commit_report_generator import MarkdownCommitReportGenerator
-from .release_changelog_report_generator import ReleaseChangelogReportGenerator
+from markdown_commit_report_generator import MarkdownCommitReportGenerator
+from release_changelog_report_generator import ReleaseChangelogReportGenerator
 from base_interfaces import ReportStrategy
 
 class ReportGeneratorFactory:
