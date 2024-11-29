@@ -118,7 +118,7 @@ class MarkdownCommitReportGenerator(ReportStrategy):
     }
     
     def _style_scope_tag(self, scope: str) -> str:
-        return f"""<span class="md3-chip">{scope}</span>"""
+        return f"""<span class="scope-tag">{scope}</span>"""
 
     def generate(self, commits: Dict) -> str:
         today = datetime.now().strftime("%d %B %Y")
@@ -128,144 +128,149 @@ class MarkdownCommitReportGenerator(ReportStrategy):
             "<style>",
             """
             :root {
-                --md-sys-color-primary: #006495;
-                --md-sys-color-surface: #fdfbff;
-                --md-sys-color-surface-variant: #dde3ea;
-                --md-sys-color-on-surface: #1a1c1e;
-                --md-sys-color-on-surface-variant: #41474d;
-                --md-elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-                --md-elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+                --color-bg: #ffffff;
+                --color-text: #24292e;
+                --color-text-secondary: #586069;
+                --color-border: #e1e4e8;
+                --color-surface: #f6f8fa;
+                --radius-base: 8px;
+                --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+                --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
             }
 
-            .md3-surface {
-                background-color: var(--md-sys-color-surface);
-                border-radius: 16px;
-                padding: 16px;
-                margin: 8px 0;
-                box-shadow: var(--md-elevation-1);
-                transition: box-shadow 0.2s;
-            }
-
-            .md3-surface:hover {
-                box-shadow: var(--md-elevation-2);
-            }
-
-            .md3-chip {
-                display: inline-flex;
-                align-items: center;
-                height: 32px;
-                padding: 0 12px;
-                border-radius: 8px;
-                background: var(--md-sys-color-surface-variant);
-                color: var(--md-sys-color-on-surface-variant);
-                font-size: 14px;
-                font-weight: 500;
-                line-height: 20px;
-                user-select: none;
-            }
-
-            .md3-list {
-                list-style: none;
-                padding: 8px;
+            * {
+                box-sizing: border-box;
                 margin: 0;
+                padding: 0;
             }
 
-            .md3-list-item {
-                margin: 8px 0;
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+                line-height: 1.5;
+                color: var(--color-text);
             }
 
-            .md3-headline-large {
-                font-size: 32px;
-                line-height: 40px;
-                font-weight: 400;
-                margin: 24px 0 16px;
+            .container {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 2rem;
             }
 
-            .md3-headline-medium {
-                font-size: 28px;
-                line-height: 36px;
-                font-weight: 400;
-                margin: 24px 0 16px;
+            .header {
+                text-align: center;
+                margin-bottom: 3rem;
             }
 
-            .md3-body-large {
-                font-size: 16px;
-                line-height: 24px;
-                font-weight: 400;
+            .scope-tag {
+                display: inline-block;
+                padding: 0.25rem 0.75rem;
+                background: var(--color-surface);
+                border-radius: var(--radius-base);
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--color-text);
+                margin: 0.5rem 0;
             }
 
-            .md3-body-medium {
-                font-size: 14px;
-                line-height: 20px;
-                font-weight: 400;
-                color: var(--md-sys-color-on-surface-variant);
+            .commit-list {
+                list-style: none;
+                margin: 1rem 0;
             }
 
-            .md3-code {
-                background: var(--md-sys-color-surface-variant);
-                border-radius: 8px;
-                padding: 16px;
-                margin: 8px 0;
+            .commit-item {
+                background: var(--color-bg);
+                border: 1px solid var(--color-border);
+                border-radius: var(--radius-base);
+                padding: 1rem;
+                margin-bottom: 1rem;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+            .commit-item:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .commit-title {
+                font-size: 1rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .commit-meta {
+                font-size: 0.875rem;
+                color: var(--color-text-secondary);
+                margin-bottom: 0.5rem;
+            }
+
+            .commit-body {
+                background: var(--color-surface);
+                border-radius: var(--radius-base);
+                padding: 1rem;
+                margin: 0.5rem 0;
                 font-family: monospace;
                 white-space: pre-wrap;
+                font-size: 0.875rem;
             }
 
-            details summary {
+            details {
+                margin: 1rem 0;
+            }
+
+            summary {
                 cursor: pointer;
-                list-style: none;
+                margin-bottom: 1rem;
             }
 
-            details summary::-webkit-details-marker {
+            summary::-webkit-details-marker {
                 display: none;
             }
             """,
             "</style>",
-            "<div align='center'>",
-            f"<h1 class='md3-headline-large'>📄 Commit Report</h1>",
-            f"<p class='md3-body-medium'>Generated on {today}</p>",
-            "</div>"
+            "<div class='container'>",
+            "<header class='header'>",
+            f"<h1>📄 Commit Report</h1>",
+            f"<p>Generated on {today}</p>",
+            "</header>"
         ]
 
-        for commit_type, scopes in commits.items():
-            if not scopes:
+        for type_name in priority_order:
+            if type_name not in commits or not commits[type_name]:
                 continue
 
-            emoji = self.emojis.get(commit_type, "📌")
-            doc.append(f"<h2 class='md3-headline-medium'>{emoji} {commit_type.capitalize()}s</h2>")
+            emoji = self.emojis.get(type_name, "📌")
+            doc.append(f"<h2>{emoji} {type_name.capitalize()}s</h2>")
 
-            for scope, commits_list in scopes.items():
+            for scope, commits_list in commits[type_name].items():
                 doc.append("<details open>")
                 doc.append(f"<summary>{self._style_scope_tag(scope)}</summary>")
-                doc.append("<ul class='md3-list'>")
+                doc.append("<ul class='commit-list'>")
 
                 for commit in commits_list:
                     doc.extend([
-                        "<li class='md3-list-item'>",
-                        "<div class='md3-surface'>",
-                        f"<div class='md3-body-large'>{commit['title']}</div>",
-                        f"<div class='md3-body-medium'>👤 {commit['author']} • 📅 {commit['date']}</div>"
+                        "<li class='commit-item'>",
+                        f"<div class='commit-title'>{commit['title']}</div>",
+                        f"<div class='commit-meta'>👤 {commit['author']} • 📅 {commit['date']}</div>"
                     ])
 
                     if commit['body']:
                         doc.extend([
-                            "<div class='md3-code'>",
+                            "<div class='commit-body'>",
                             commit['body'],
                             "</div>"
                         ])
 
                     if commit['refs']:
-                        doc.append(f"<div class='md3-body-medium'>🔗 {', '.join(commit['refs'])}</div>")
+                        doc.append(f"<div class='commit-meta'>🔗 {', '.join(commit['refs'])}</div>")
 
-                    doc.extend([
-                        "</div>",
-                        "</li>"
-                    ])
+                    doc.append("</li>")
 
                 doc.extend([
                     "</ul>",
                     "</details>"
                 ])
 
+        doc.append("</div>")
         return '\n'.join(doc)
 
 class ReleaseChangelogStrategy(ReportStrategy):
