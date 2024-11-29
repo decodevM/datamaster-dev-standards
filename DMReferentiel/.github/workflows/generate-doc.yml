@@ -1,0 +1,42 @@
+name: Generate Commit Log
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  generate-commit-log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+          pip install GitPython
+
+      - name: Create the generated_docs directory
+        run: mkdir -p generated_docs  # Ensure the directory exists before generating the file
+
+      - name: Run the commit log generation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}  # Set owner as environment variable
+          REPO_NAME: ${{ github.event.repository.name }}  # Set repo name as environment variable
+        run: python .github/scripts/changelogs/main.py
+
+      - name: Check the generated commit logs
+        run: ls -la generated_docs  # This is to check that files exist in the folder
+
+      - name: Upload all commit logs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-logs
+          path: generated_docs/*
