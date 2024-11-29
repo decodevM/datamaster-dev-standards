@@ -1099,23 +1099,25 @@ class CommitDocumentManager:
                 })
 
         return categorized
+    
+    def save_document(self, content, filename="generated_docs/commit_document.md"):
+        
+        filename = filename + f"_{datetime.now().strftime('%Y-%m-%d')}"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(content)
+        print(f"✅ Document saved to: {filename}")
 
-    def save_document(self, document: str):
-        file_name = f"commit_report_{datetime.now().strftime('%Y-%m-%d')}.md"
-        file_path = os.path.join(os.getcwd(), file_name)
 
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(document)
-
-        logger.info(f"Document saved: {file_path}")
 
 
 # Client code
 def main():
     # Setup GitHub credentials and repository details
-    github_token = "your_github_token_here"
-    repo_owner = "your_repo_owner_here"
-    repo_name = "your_repo_name_here"
+
+    github_token = os.getenv('GITHUB_TOKEN')
+    repo_owner = os.getenv('REPO_OWNER')
+    repo_name = os.getenv('REPO_NAME')
 
     # Create instances of the fetcher, parser, and report generator
     commit_fetcher = GitHubCommitFetcher(github_token, repo_owner, repo_name)
