@@ -838,6 +838,7 @@ class CommitDocument:
                             doc.append(f"\n")      # Add a refs heading
                             for ref in commit['refs']:
                                 doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
+                                doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
                         doc.append(f"\t```")                  # Close the code block
 
 
