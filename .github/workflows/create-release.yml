@@ -24,8 +24,8 @@ jobs:
           sudo apt update
           sudo apt install -y gh
 
-      # Create a new tag
-      - name: Create New Tag
+      # Create or Validate Tag
+      - name: Create or Validate Tag
         id: create_tag
         run: |
           # Fetch all tags
@@ -53,6 +53,13 @@ jobs:
           # Create the new tag
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
           echo "New tag: $NEW_TAG"
+
+          # Check if the tag already exists
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEW_TAG already exists. Skipping creation."
+            echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+            exit 0
+          fi
 
           # Push the new tag to the repository
           git config user.name "GitHub Actions"
@@ -88,6 +95,7 @@ jobs:
 
       # Create a release
       - name: Create Release
+        if: steps.create_tag.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
