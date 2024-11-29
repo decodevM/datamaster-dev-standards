@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests
+          pip install GitPython
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs  # Ensure the directory exists before generating the file
