@@ -829,10 +829,10 @@ class CommitDocument:
                     if commit['body']:
                         # print('body: ' + commit['body'])
                         # doc.append(f"\n\t**Description**\n")  # Add a description heading
-                        doc.append(f"\t\t```text")              # Open the code block
+                        doc.append(f"\t```text")              # Open the code block
                         for line in commit['body'].splitlines():
-                            doc.append(f"\t\t{line}")          # Add each line of the body with tab-based indentation
-                        doc.append(f"\t\t```")                  # Close the code block
+                            doc.append(f"\t{line}")          # Add each line of the body with tab-based indentation
+                        doc.append(f"\t```")                  # Close the code block
 
 
                     # Add refs with indentation
