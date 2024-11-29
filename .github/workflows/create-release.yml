@@ -1,108 +1,94 @@
-name: Create release
+name: Create Release with Changelog
 
 on:
   push:
     branches:
-      - '*'  # Trigger on push to main branch
+      - '*' # Trigger on pushes to the main branch
 
 permissions:
   contents: write
 
 jobs:
   release:
-    name: Create release with changelog
-    runs-on: ubuntu-22.04
+    name: Create Release
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Generate Unique Tag
-        id: create_tag
+      - name: Set up Git
         run: |
-          # Generate a tag based on the current timestamp
-          TAG="v$(date +'%Y.%m.%d.%H%M%S')"
-          
-          # Check if the tag already exists remotely
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists remotely. Exiting..."
-            exit 1
-          fi
-
-          # Create and push the tag to remote
-          git tag $TAG
-          git push origin $TAG
-          echo "::set-output name=tag::$TAG"  # Pass tag as an output
-
-      - name: Get Previous Tag (Handle empty repo gracefully)
-        id: get_previous_tag
-        run: |
-          # Fetch tags in the repo
           git fetch --tags
-          
-          # Get the list of tags
-          TAGS=$(git tag -l)
 
-          if [ -z "$TAGS" ]; then
-            # If no tags exist, it's the first release, so set an empty previous_tag
-            echo "::set-output name=previous_tag::"
-            echo "::set-output name=is_first_release::true"
-          else
-            # Get the previous tag by sorting tags and excluding the current one
-            PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n 2 | tail -n 1)
-            echo "::set-output name=previous_tag::$PREVIOUS_TAG"
-            echo "::set-output name=is_first_release::false"
-          fi
-
-      - name: Generate Changelog Dynamically
-        id: generate_changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.create_tag.outputs.tag }}  # Get the tag from previous step
+      - name: Get the latest tag and current commit hash
+        id: tags
         run: |
-          # Get the previous tag from the output of the previous step
-          PREVIOUS_TAG="${{ steps.get_previous_tag.outputs.previous_tag }}"
-          IS_FIRST_RELEASE="${{ steps.get_previous_tag.outputs.is_first_release }}"
+          # Get the latest tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "Previous tag: $PREVIOUS_TAG"
 
-          if [ "$IS_FIRST_RELEASE" == "true" ]; then
-            # If it's the first release, display a message indicating it's the first release
-            changelog="### What's Changed\nNo previous release found. This is the first release."
+          # Get the current commit hash
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          echo "Current commit: $CURRENT_COMMIT"
+
+          # Define the new tag (e.g., vYYYY.MM.DD.HHMMSS)
+          NEW_TAG="v$(date -u +'%Y.%m.%d.%H%M%S')"
+          echo "New tag: $NEW_TAG"
+
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_ENV
+          echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_ENV
+          echo "new_tag=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=${{ env.previous_tag }}
+          NEW_TAG=${{ env.new_tag }}
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, generating changelog from the beginning."
+            COMMITS=$(git log --pretty=format:"%H|%s|%an")
           else
-            # If there are previous tags, get the commit messages between the previous tag and the current tag
-            COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG".."$tag")
-
-            # Initialize changelog
-            changelog="### What's Changed\n"
-
-            if [ -z "$COMMITS" ]; then
-              changelog+="No changes between $PREVIOUS_TAG and $tag"
-            else
-              # Loop over commits and filter by type (e.g., feat, style, etc.)
-              for commit in $COMMITS; do
-                # Check for commit types (e.g., feat, style)
-                if [[ $commit =~ ^(feat|style|fix|docs|chore)\((.*)\):\ (.*) ]]; then
-                  type=${BASH_REMATCH[1]}  # commit type (feat, style, etc.)
-                  scope=${BASH_REMATCH[2]}  # scope of the change (e.g., API, GitHub)
-                  description=${BASH_REMATCH[3]}  # commit description
-                  changelog+="${BASH_REMATCH}\n"
-                  changelog+="$type($scope): $description by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-                else
-                  changelog+="$commit by @${GITHUB_ACTOR} in #${GITHUB_SHA}\n"
-                fi
-              done
-            fi
+            echo "Generating changelog from $PREVIOUS_TAG to $NEW_TAG."
+            COMMITS=$(git log --pretty=format:"%H|%s|%an" "$PREVIOUS_TAG..HEAD")
           fi
 
-          # Save changelog to output
+          changelog="### What's Changed\n"
+
+          if [ -z "$COMMITS" ]; then
+            changelog+="No changes since the last release.\n"
+          else
+            while IFS= read -r commit; do
+              hash=$(echo "$commit" | cut -d'|' -f1)
+              message=$(echo "$commit" | cut -d'|' -f2)
+              author=$(echo "$commit" | cut -d'|' -f3)
+
+              if [[ "$message" =~ ^(feat|fix|style|docs|chore)\(([^)]+)\):\ (.+) ]]; then
+                type=${BASH_REMATCH[1]}
+                scope=${BASH_REMATCH[2]}
+                description=${BASH_REMATCH[3]}
+                changelog+="- **$type($scope)**: [$description](https://github.com/$GITHUB_REPOSITORY/commit/$hash) by @$author\n"
+              else
+                changelog+="- $message: [Details](https://github.com/$GITHUB_REPOSITORY/commit/$hash) by @$author\n"
+              fi
+            done <<< "$COMMITS"
+          fi
+
           echo "::set-output name=changelog::$changelog"
+        shell: bash
 
-      - name: Create Release with Changelog
+      - name: Create New Tag
+        run: |
+          git tag ${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+
+      - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          changelog: ${{ steps.generate_changelog.outputs.changelog }}
-          tag: ${{ steps.create_tag.outputs.tag }}  # Tag from the previous step
         run: |
-          # Create the release with the dynamically generated changelog
-          gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --notes "$changelog"  # Use dynamically generated changelog
+          NEW_TAG=${{ env.new_tag }}
+          CHANGELOG="${{ steps.changelog.outputs.changelog }}"
+          
+          gh release create "$NEW_TAG" \
+              --title "Release $NEW_TAG" \
+              --notes "$CHANGELOG"
