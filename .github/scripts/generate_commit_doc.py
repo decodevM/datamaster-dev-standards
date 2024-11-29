@@ -825,10 +825,13 @@ class CommitDocument:
                     doc.append(f"- **{commit['title']}**")
                     doc.append(f"  *{commit['author']} - {commit['date']}*")
 
-                    # Add body with full indentation
+                    # Add body with indentation based on leading spaces
                     if commit['body']:
                         for line in commit['body'].splitlines():
-                            doc.append(f"\t- {line.strip()}")  # Tab for each line
+                            stripped_line = line.lstrip()
+                            leading_spaces = len(line) - len(stripped_line)
+                            tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
+                            doc.append(f"{'\t' * tab_count}- {stripped_line}")
 
                     # Add refs with indentation
                     if commit['refs']:
@@ -839,7 +842,7 @@ class CommitDocument:
 
         return "\n".join(doc)
     
-    
+
     def save_document(self, content, filename="generated_docs/commit_document.md"):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w', encoding='utf-8') as f:
