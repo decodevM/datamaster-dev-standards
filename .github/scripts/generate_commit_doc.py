@@ -312,7 +312,7 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         doc.append("</div>")
         return '\n'.join(doc)
     
-    
+
 class ReleaseChangelogStrategy(ReportStrategy):
     emojis = {
         "feat": "✨",
@@ -335,6 +335,17 @@ class ReleaseChangelogStrategy(ReportStrategy):
         "test": "#10b981",     # Emerald
         "chore": "#6b7280"     # Gray
     }
+
+    priority_order = [
+        'feat',    # New features first
+        'fix',     # Bug fixes second
+        'perf',    # Performance improvements
+        'refactor',# Code refactoring
+        'docs',    # Documentation changes
+        'style',   # Style changes
+        'test',    # Test changes
+        'chore'    # Maintenance tasks last
+    ]
 
     def _style_scope_tag(self, scope: str) -> str:
         return f"""<span class="scope-tag">{scope}</span>"""
