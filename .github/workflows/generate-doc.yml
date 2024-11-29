@@ -21,6 +21,9 @@ jobs:
         run: |
           pip install requests
 
+      - name: Create the generated_docs directory
+        run: mkdir -p generated_docs  # Ensure the directory exists before generating the file
+
       - name: Run the commit log generation script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -28,8 +31,11 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}  # Set repo name as environment variable
         run: python .github/scripts/generate_commit_doc.py
 
-      - name: Upload commit log as an artifact
+      - name: Check the generated commit logs
+        run: ls -la generated_docs  # This is to check that files exist in the folder
+
+      - name: Upload all commit logs as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: commit-log
-          path: generated_docs/commit_document.md
+          name: commit-logs
+          path: generated_docs/*
