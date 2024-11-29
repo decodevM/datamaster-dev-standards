@@ -680,7 +680,7 @@ class CommitParser:
             r"(?P<title>[^\n]+)"
             r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
             r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
-            re.DOTALL
+            r"$", re.DOTALL
         )
 
     def parse(self, message: str) -> Optional[Dict]:
