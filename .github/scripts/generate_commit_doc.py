@@ -835,7 +835,7 @@ class CommitDocument:
 
                         # Add refs with indentation
                         if commit['refs']:
-                            doc.append(f"\n**Refs**\n")      # Add a refs heading
+                            doc.append(f"\n")      # Add a refs heading
                             for ref in commit['refs']:
                                 doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
                         doc.append(f"\t```")                  # Close the code block
