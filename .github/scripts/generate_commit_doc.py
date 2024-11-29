@@ -655,70 +655,248 @@
 
 
 
+# import os
+# import re
+# from datetime import datetime
+# import requests
+# from typing import Dict, Optional, List
+# import logging
+
+# # Configure logging
+# logging.basicConfig(level=logging.DEBUG)
+# logger = logging.getLogger(__name__)
+
+
+# class CommitParser:
+#     def __init__(self):
+#         self.TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
+#         self.commit_pattern = self._create_commit_pattern()
+
+#     def _create_commit_pattern(self):
+#         type_regex = "|".join(self.TYPES)
+#         return re.compile(
+#             r"^(?P<type>" + type_regex + r")"
+#             r"\((?P<scope>[^)]+)\):\s*"
+#             r"(?P<title>[^\n]+)"
+#             r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
+#             r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
+#             r"$", re.DOTALL
+#         )
+
+#     def parse(self, message: str) -> Optional[Dict]:
+#         try:
+#             if not message or not isinstance(message, str):
+#                 logger.warning(f"Invalid message format: {message}")
+#                 return None
+
+#             message = message.strip()
+#             match = self.commit_pattern.match(message)
+
+#             if not match:
+#                 logger.debug(f"No match found for message: {message}")
+#                 return None
+
+#             result = match.groupdict()
+
+#             return {
+#                 "type": result.get("type", ""),
+#                 "scope": result.get("scope", ""),
+#                 "title": result.get("title", ""),
+#                 "body": result.get("body", "").strip() if result.get("body") else None,
+#                 "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
+#             }
+
+#         except Exception as e:
+#             logger.error(f"Error parsing commit message: {e}")
+#             return None
+
+
+# class CommitDocument:
+#     def __init__(self):
+#         self.parser = CommitParser()
+#         self.github_token = os.getenv('GITHUB_TOKEN')
+#         self.repo_owner = os.getenv('REPO_OWNER')
+#         self.repo_name = os.getenv('REPO_NAME')
+
+#     def fetch_commits(self, branch="main"):
+#         url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/commits"
+#         headers = {
+#             "Authorization": f"token {self.github_token}",
+#             "Accept": "application/vnd.github.v3+json"
+#         }
+
+#         commits = []
+#         page = 1
+
+#         while True:
+#             try:
+#                 response = requests.get(
+#                     url,
+#                     headers=headers,
+#                     params={"sha": branch, "page": page}
+#                 )
+#                 response.raise_for_status()
+
+#                 data = response.json()
+#                 if not data:
+#                     break
+
+#                 commits.extend(data)
+#                 page += 1
+
+#             except Exception as e:
+#                 logger.error(f"Error fetching commits: {e}")
+#                 break
+
+#         return commits
+
+#     def categorize_commits(self, commits):
+#         categorized = {t: {} for t in self.parser.TYPES}  # Group by type and scope
+#         seen = set()  # Set to track unique commit identifiers
+
+#         for commit in commits:
+#             message = commit["commit"]["message"]
+#             author = commit["commit"]["author"]["name"]
+#             date = datetime.strptime(
+#                 commit["commit"]["author"]["date"],
+#                 "%Y-%m-%dT%H:%M:%SZ"
+#             ).strftime("%d %B %Y %H:%M")
+
+#             parsed = self.parser.parse(message)
+#             if parsed:
+#                 # Create a unique identifier for the commit
+#                 commit_id = (
+#                     parsed["type"],
+#                     parsed["scope"],
+#                     parsed["title"],
+#                     parsed["body"],
+#                     tuple(parsed["refs"])
+#                 )
+
+#                 if commit_id in seen:  # Skip duplicates
+#                     continue
+
+#                 seen.add(commit_id)  # Mark this commit as seen
+
+#                 commit_info = {
+#                     **parsed,
+#                     "date": date,
+#                     "author": author
+#                 }
+
+#                 # Add to categorized commits by type and scope
+#                 scope_group = categorized[parsed["type"]].setdefault(parsed["scope"], [])
+#                 scope_group.append(commit_info)
+
+#         return categorized
+
+#     def generate_markdown(self, categorized_commits):
+#         emojis = {
+#             "feat": "✨",
+#             "fix": "🐛",
+#             "docs": "📚",
+#             "style": "💎",
+#             "refactor": "♻️",
+#             "perf": "⚡️",
+#             "test": "🧪",
+#             "chore": "🔧"
+#         }
+
+#         today = datetime.now().strftime("%d %B %Y")
+
+#         doc = [
+#             "# 📄 Commit Report",
+#             f"*Generated on {today}*\n",
+#             "## 🏢 Project Commits\n"
+#         ]
+
+#         for commit_type, scopes in categorized_commits.items():
+#             if not scopes:
+#                 continue
+
+#             emoji = emojis.get(commit_type, "📌")
+#             doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
+
+#             for scope, commits in scopes.items():
+#                 doc.append(f"#### `{scope}`\n")
+
+#                 for commit in commits:
+#                     # Title with author and date
+#                     doc.append(f"- **{commit['title']}**")
+#                     doc.append(f"  *{commit['author']} - {commit['date']}*")
+
+#                     # Add body with indentation based on leading spaces
+#                     if commit['body'] or commit['refs']:
+#                         # print('body: ' + commit['body'])
+#                         doc.append(f"\n\t**Description**\n")  # Add a description heading
+#                         doc.append(f"\t```text")
+#                         if commit['body']:  # Open the code block
+#                             for line in commit['body'].splitlines():
+#                                 doc.append(f"\t{line}")          # Add each line of the body with tab-based indentation
+
+#                             doc.append(f"\n")  
+
+#                         # Add refs with indentation
+#                         if commit['refs']:    # Add a refs heading
+#                             for ref in commit['refs']:
+#                                 doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
+#                                 doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
+#                         doc.append(f"\t```")                  # Close the code block
+
+
+                    
+
+#                 doc.append("---")  # Separator for each scope
+
+#         return "\n".join(doc)
+    
+
+#     def save_document(self, content, filename="generated_docs/commit_document.md"):
+#         os.makedirs(os.path.dirname(filename), exist_ok=True)
+#         with open(filename, 'w', encoding='utf-8') as f:
+#             f.write(content)
+#         print(f"✅ Document saved to: {filename}")
+
+
+# def main():
+#     doc_generator = CommitDocument()
+#     commits = doc_generator.fetch_commits()
+
+#     if not commits:
+#         print("❌ No commits found")
+#         return
+
+#     categorized = doc_generator.categorize_commits(commits)
+#     markdown = doc_generator.generate_markdown(categorized)
+#     doc_generator.save_document(markdown)
+
+
+# if __name__ == "__main__":
+#     main()
+
+
+
+
+
 import os
 import re
 from datetime import datetime
 import requests
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Protocol
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Step 1: Commit Fetcher
+class CommitFetcher:
+    def __init__(self, github_token: str, repo_owner: str, repo_name: str):
+        self.github_token = github_token
+        self.repo_owner = repo_owner
+        self.repo_name = repo_name
 
-class CommitParser:
-    def __init__(self):
-        self.TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
-        self.commit_pattern = self._create_commit_pattern()
-
-    def _create_commit_pattern(self):
-        type_regex = "|".join(self.TYPES)
-        return re.compile(
-            r"^(?P<type>" + type_regex + r")"
-            r"\((?P<scope>[^)]+)\):\s*"
-            r"(?P<title>[^\n]+)"
-            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
-            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
-            r"$", re.DOTALL
-        )
-
-    def parse(self, message: str) -> Optional[Dict]:
-        try:
-            if not message or not isinstance(message, str):
-                logger.warning(f"Invalid message format: {message}")
-                return None
-
-            message = message.strip()
-            match = self.commit_pattern.match(message)
-
-            if not match:
-                logger.debug(f"No match found for message: {message}")
-                return None
-
-            result = match.groupdict()
-
-            return {
-                "type": result.get("type", ""),
-                "scope": result.get("scope", ""),
-                "title": result.get("title", ""),
-                "body": result.get("body", "").strip() if result.get("body") else None,
-                "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
-            }
-
-        except Exception as e:
-            logger.error(f"Error parsing commit message: {e}")
-            return None
-
-
-class CommitDocument:
-    def __init__(self):
-        self.parser = CommitParser()
-        self.github_token = os.getenv('GITHUB_TOKEN')
-        self.repo_owner = os.getenv('REPO_OWNER')
-        self.repo_name = os.getenv('REPO_NAME')
-
-    def fetch_commits(self, branch="main"):
+    def fetch_commits(self, branch="main") -> List[Dict]:
         url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/commits"
         headers = {
             "Authorization": f"token {self.github_token}",
@@ -750,7 +928,51 @@ class CommitDocument:
 
         return commits
 
-    def categorize_commits(self, commits):
+# Step 2: Commit Parser
+class CommitParser:
+    def __init__(self):
+        self.TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
+        self.commit_pattern = self._create_commit_pattern()
+
+    def _create_commit_pattern(self):
+        type_regex = "|".join(self.TYPES)
+        return re.compile(
+            r"^(?P<type>" + type_regex + r")"
+            r"\((?P<scope>[^)]+)\):\s*"
+            r"(?P<title>[^\n]+)"
+            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
+            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
+            r"$", re.DOTALL
+        )
+
+    def parse(self, message: str) -> Optional[Dict]:
+        if not message or not isinstance(message, str):
+            logger.warning(f"Invalid message format: {message}")
+            return None
+
+        message = message.strip()
+        match = self.commit_pattern.match(message)
+
+        if not match:
+            logger.debug(f"No match found for message: {message}")
+            return None
+
+        result = match.groupdict()
+
+        return {
+            "type": result.get("type", ""),
+            "scope": result.get("scope", ""),
+            "title": result.get("title", ""),
+            "body": result.get("body", "").strip() if result.get("body") else None,
+            "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
+        }
+
+# Step 3: Commit Categorizer
+class CommitCategorizer:
+    def __init__(self, parser: CommitParser):
+        self.parser = parser
+
+    def categorize_commits(self, commits: List[Dict]) -> Dict:
         categorized = {t: {} for t in self.parser.TYPES}  # Group by type and scope
         seen = set()  # Set to track unique commit identifiers
 
@@ -790,8 +1012,14 @@ class CommitDocument:
 
         return categorized
 
-    def generate_markdown(self, categorized_commits):
-        emojis = {
+# Step 4: Output Format (Strategy Pattern)
+class CommitOutputFormatter(Protocol):
+    def format_commit(self, commit: Dict) -> str:
+        pass
+
+class MarkdownCommitFormatter(CommitOutputFormatter):
+    def format_commit(self, commit: Dict) -> str:
+        emoji = {
             "feat": "✨",
             "fix": "🐛",
             "docs": "📚",
@@ -802,74 +1030,71 @@ class CommitDocument:
             "chore": "🔧"
         }
 
-        today = datetime.now().strftime("%d %B %Y")
+        output = [f"- **{commit['title']}**", f"  *{commit['author']} - {commit['date']}*"]
+        
+        # Add body and refs
+        if commit['body']:
+            output.append(f"\n\t**Description**\n\t```text")
+            for line in commit['body'].splitlines():
+                output.append(f"\t{line}")
+            output.append(f"\t```")
 
-        doc = [
-            "# 📄 Commit Report",
-            f"*Generated on {today}*\n",
-            "## 🏢 Project Commits\n"
-        ]
+        if commit['refs']:
+            for ref in commit['refs']:
+                output.append(f"\t🔗 {ref}")
 
-        for commit_type, scopes in categorized_commits.items():
-            if not scopes:
-                continue
+        return "\n".join(output)
 
-            emoji = emojis.get(commit_type, "📌")
-            doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
+# Step 5: Document Saver
+class DocumentSaver:
+    def __init__(self, filename="generated_docs/commit_document.md"):
+        self.filename = filename
 
-            for scope, commits in scopes.items():
-                doc.append(f"#### `{scope}`\n")
-
-                for commit in commits:
-                    # Title with author and date
-                    doc.append(f"- **{commit['title']}**")
-                    doc.append(f"  *{commit['author']} - {commit['date']}*")
-
-                    # Add body with indentation based on leading spaces
-                    if commit['body'] or commit['refs']:
-                        # print('body: ' + commit['body'])
-                        doc.append(f"\n\t**Description**\n")  # Add a description heading
-                        doc.append(f"\t```text")
-                        if commit['body']:  # Open the code block
-                            for line in commit['body'].splitlines():
-                                doc.append(f"\t{line}")          # Add each line of the body with tab-based indentation
-
-                            doc.append(f"\n")  
-                            
-                        # Add refs with indentation
-                        if commit['refs']:    # Add a refs heading
-                            for ref in commit['refs']:
-                                doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
-                                doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
-                        doc.append(f"\t```")                  # Close the code block
-
-
-                    
-
-                doc.append("---")  # Separator for each scope
-
-        return "\n".join(doc)
-    
-
-    def save_document(self, content, filename="generated_docs/commit_document.md"):
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'w', encoding='utf-8') as f:
+    def save(self, content: str):
+        os.makedirs(os.path.dirname(self.filename), exist_ok=True)
+        with open(self.filename, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"✅ Document saved to: {filename}")
+        logger.info(f"Document saved to: {self.filename}")
 
+# Step 6: Main Execution
+class CommitDocumentGenerator:
+    def __init__(self, fetcher: CommitFetcher, categorizer: CommitCategorizer, formatter: CommitOutputFormatter, saver: DocumentSaver):
+        self.fetcher = fetcher
+        self.categorizer = categorizer
+        self.formatter = formatter
+        self.saver = saver
 
+    def generate_commit_report(self):
+        commits = self.fetcher.fetch_commits()
+        if not commits:
+            logger.error("No commits found")
+            return
+
+        categorized = self.categorizer.categorize_commits(commits)
+        formatted_commits = []
+
+        for commit_type, scopes in categorized.items():
+            for scope, commits in scopes.items():
+                for commit in commits:
+                    formatted_commits.append(self.formatter.format_commit(commit))
+
+        report_content = "\n\n".join(formatted_commits)
+        self.saver.save(report_content)
+
+# Step 7: Main
 def main():
-    doc_generator = CommitDocument()
-    commits = doc_generator.fetch_commits()
+    github_token = os.getenv('GITHUB_TOKEN')
+    repo_owner = os.getenv('REPO_OWNER')
+    repo_name = os.getenv('REPO_NAME')
 
-    if not commits:
-        print("❌ No commits found")
-        return
+    fetcher = CommitFetcher(github_token, repo_owner, repo_name)
+    parser = CommitParser()
+    categorizer = CommitCategorizer(parser)
+    formatter = MarkdownCommitFormatter()
+    saver = DocumentSaver()
 
-    categorized = doc_generator.categorize_commits(commits)
-    markdown = doc_generator.generate_markdown(categorized)
-    doc_generator.save_document(markdown)
-
+    generator = CommitDocumentGenerator(fetcher, categorizer, formatter, saver)
+    generator.generate_commit_report()
 
 if __name__ == "__main__":
     main()
