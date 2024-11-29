@@ -320,8 +320,9 @@ class ChangelogGenerator:
             parsed = self.parser.parse(message)
 
             if parsed:  # Only proceed if parsing was successful
-                # Extract the footer if available
+                # Extract the footer, body, and title if available
                 footer = parsed.get("footer", "").strip() if parsed.get("footer") else ""
+                body = parsed.get("body", "").strip() if parsed.get("body") else ""  # Extract body
 
                 # Create a unique identifier for each commit
                 unique_identifier = f"{parsed['type']}::{parsed['scope']}::{parsed['title']}"
@@ -337,8 +338,10 @@ class ChangelogGenerator:
 
                 if scope not in categorized[commit_type]:
                     categorized[commit_type][scope] = []
+
                 categorized[commit_type][scope].append({
                     "title": title,
+                    "body": body,  # Add body to the categorized commit
                     "footer": footer  # Add footer to the categorized commit
                 })
 
