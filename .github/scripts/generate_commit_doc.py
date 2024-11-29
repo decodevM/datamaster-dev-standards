@@ -1294,14 +1294,14 @@ class MarkdownCommitReportGenerator(ReportStrategy):
                 continue
 
             emoji = self.emojis.get(commit_type, "📌")
-            doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
+            doc.append(f"# {emoji} {commit_type.capitalize()}s\n")
 
             for scope, commits_list in scopes.items():
-                doc.append(f"#### 📦 `{scope}`\n")
+                doc.append(f"## 📦 `{scope}`\n")
 
                 for commit in commits_list:
                     doc.extend([
-                        f"##### {commit['title']}",
+                        f"### {commit['title']}",
                         f"- 👤 **Author:** {commit['author']}",
                         f"- 📅 **Date:** {commit['date']}"
                     ])
@@ -1322,37 +1322,48 @@ class MarkdownCommitReportGenerator(ReportStrategy):
 
         return "\n".join(doc)
 
-class FullChangelogStrategy(ReportStrategy):
-    def generate(self, commits: Dict) -> str:
-        today = datetime.now().strftime("%d %B %Y")
-        doc = [
-            "# 📑 Full Changelog",
-            f"*Generated on {today}*\n",
-            "## Complete Changes History\n"
-        ]
+# class FullChangelogStrategy(ReportStrategy):
+#     def generate(self, commits: Dict) -> str:
+#         today = datetime.now().strftime("%d %B %Y")
+#         doc = [
+#             "# 📑 Full Changelog",
+#             f"*Generated on {today}*\n",
+#             "## Complete Changes History\n"
+#         ]
 
-        for type_name, scopes in commits.items():
-            if not scopes:
-                continue
+#         for type_name, scopes in commits.items():
+#             if not scopes:
+#                 continue
 
-            doc.append(f"### {type_name.upper()}\n")
-            for scope, commits_list in scopes.items():
-                doc.append(f"#### {scope}")
-                for commit in commits_list:
-                    doc.extend([
-                        f"- {commit['title']}",
-                        f"  - Author: {commit['author']}",
-                        f"  - Date: {commit['date']}"
-                    ])
-                    if commit['body']:
-                        doc.append(f"  - Details: {commit['body']}")
-                    if commit['refs']:
-                        doc.append(f"  - References: {', '.join(commit['refs'])}")
-                doc.append("")
+#             doc.append(f"# {type_name.upper()}\n")
+#             for scope, commits_list in scopes.items():
+#                 doc.append(f"## {scope}")
+#                 for commit in commits_list:
+#                     doc.extend([
+#                         f"### {commit['title']}",
+#                         f"- 👤 **Author:** {commit['author']}",
+#                         f"- 📅 **Date:** {commit['date']}"
+#                     ])
+#                     if commit['body']:
+#                         doc.append(f"  - Details: {commit['body']}")
+#                     if commit['refs']:
+#                         doc.append(f"  - References: {', '.join(commit['refs'])}")
+#                 doc.append("")
         
-        return "\n".join(doc)
+#         return "\n".join(doc)
 
 class ReleaseChangelogStrategy(ReportStrategy):
+    emojis = {
+        "feat": "✨",
+        "fix": "🐛",
+        "docs": "📚",
+        "style": "💎",
+        "refactor": "♻️",
+        "perf": "⚡️",
+        "test": "🧪",
+        "chore": "🔧"
+    }
+        
     def generate(self, commits: Dict) -> str:
         today = datetime.now().strftime("%d %B %Y")
         version = datetime.now().strftime("v%Y.%m.%d")
@@ -1368,10 +1379,11 @@ class ReleaseChangelogStrategy(ReportStrategy):
         for type_name in priority_order:
             if type_name not in commits or not commits[type_name]:
                 continue
+            emoji = self.emojis.get(type_name, "📌")
+            doc.append(f"# {emoji} {type_name.capitalize()}s\n")
 
-            doc.append(f"### {type_name.upper()}")
             for scope, commits_list in commits[type_name].items():
-                doc.append(f"#### {scope}")
+                doc.append(f"## 📦 `{scope}`\n")
                 for commit in commits_list:
                     entry = [f"- {commit['title']}"]
                     if commit['refs']:
@@ -1385,7 +1397,7 @@ class ReportGeneratorFactory:
     @staticmethod
     def create_generator(report_type: str) -> ReportStrategy:
         generators = {
-            'full': FullChangelogStrategy(),
+            # 'full': FullChangelogStrategy(),
             'release': ReleaseChangelogStrategy(),
             'markdown': MarkdownCommitReportGenerator()
         }
@@ -1443,7 +1455,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         categorized = self.categorize_commits(commits)
         
         generators = {
-            'full_changelog': ReportGeneratorFactory.create_generator('full'),
+            # 'full_changelog': ReportGeneratorFactory.create_generator('full'),
             'release_notes': ReportGeneratorFactory.create_generator('release'),
             'commit_report': ReportGeneratorFactory.create_generator('markdown')
         }
