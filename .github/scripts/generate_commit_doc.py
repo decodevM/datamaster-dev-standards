@@ -104,102 +104,6 @@ class BasicCommitParser(CommitParser):
             "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
         }
 
-# class MarkdownCommitReportGenerator(ReportStrategy):
-#     emojis = {
-#         "feat": "✨",
-#         "fix": "🐛",
-#         "docs": "📚",
-#         "style": "💎",
-#         "refactor": "♻️",
-#         "perf": "⚡️",
-#         "test": "🧪",
-#         "chore": "🔧"
-#     }
-
-#     def generate(self, commits: Dict) -> str:
-#         today = datetime.now().strftime("%d %B %Y")
-
-#         doc = [
-#             "# 📄 Detailed Commit Report",
-#             f"*Generated on {today}*\n",
-#             "## 🔍 Commit Details by Type\n"
-#         ]
-
-#         for commit_type, scopes in commits.items():
-#             if not scopes:
-#                 continue
-
-#             emoji = self.emojis.get(commit_type, "📌")
-#             doc.append(f"# {emoji} {commit_type.capitalize()}s\n")
-
-#             for scope, commits_list in scopes.items():
-#                 doc.append(f"## 📦 `{scope}`\n")
-
-#                 for commit in commits_list:
-#                     doc.extend([
-#                         f"### {commit['title']}",
-#                         f"- 👤 **Author:** {commit['author']}",
-#                         f"- 📅 **Date:** {commit['date']}"
-#                     ])
-
-#                     if commit['body']:
-#                         doc.extend([
-#                             "",
-#                             "**Details:**",
-#                             "```",
-#                             commit['body'],
-#                             "```"
-#                         ])
-
-#                     if commit['refs']:
-#                         doc.append(f"🔗 **References:** {', '.join(commit['refs'])}")
-
-#                     doc.append("\n---\n")
-
-#         return "\n".join(doc)
-
-
-# class ReleaseChangelogStrategy(ReportStrategy):
-#     emojis = {
-#         "feat": "✨",
-#         "fix": "🐛",
-#         "docs": "📚",
-#         "style": "💎",
-#         "refactor": "♻️",
-#         "perf": "⚡️",
-#         "test": "🧪",
-#         "chore": "🔧"
-#     }
-        
-#     def generate(self, commits: Dict) -> str:
-#         today = datetime.now().strftime("%d %B %Y")
-#         version = datetime.now().strftime("v%Y.%m.%d")
-        
-#         doc = [
-#             f"# 🚀 Release {version}",
-#             f"*Released on {today}*\n",
-#             "## Changes in this Release\n"
-#         ]
-
-#         priority_order = ['feat', 'fix', 'perf', 'refactor', 'docs', 'style', 'test', 'chore']
-        
-#         for type_name in priority_order:
-#             if type_name not in commits or not commits[type_name]:
-#                 continue
-#             emoji = self.emojis.get(type_name, "📌")
-#             doc.append(f"# {emoji} {type_name.capitalize()}s\n")
-
-#             for scope, commits_list in commits[type_name].items():
-#                 doc.append(f"## 📦 `{scope}`\n")
-#                 for commit in commits_list:
-#                     entry = [f"- {commit['title']}"]
-#                     if commit['refs']:
-#                         entry.append(f"  ({', '.join(commit['refs'])})")
-#                     doc.append("".join(entry))
-#             doc.append("")
-        
-#         return "\n".join(doc)
-
 
 class MarkdownCommitReportGenerator(ReportStrategy):
     emojis = {
@@ -213,89 +117,205 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         "chore": "🔧"
     }
 
+    # def generate(self, commits: Dict) -> str:
+    #     today = datetime.now().strftime("%d %B %Y")
+    #     repo_info = f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
+
+    #     doc = [
+    #         "<div align='center'>",
+    #         "",
+    #         "# 📄 Detailed Commit Report",
+    #         "",
+    #         f"[![Last Updated]({today})](#{today.lower().replace(' ', '-')})",
+    #         f"[![Repository]({repo_info})](https://github.com/{repo_info})",
+    #         "",
+    #         "</div>",
+    #         "",
+    #         "---",
+    #         "",
+    #         "## 📋 Table of Contents\n"
+    #     ]
+
+    #     # Generate TOC
+    #     for commit_type in commits.keys():
+    #         if commits[commit_type]:
+    #             emoji = self.emojis.get(commit_type, "📌")
+    #             doc.append(f"- [{emoji} {commit_type.capitalize()}s](#{commit_type}s)")
+
+    #     doc.append("\n---\n")
+
+    #     # Generate content
+    #     for commit_type, scopes in commits.items():
+    #         if not scopes:
+    #             continue
+
+    #         emoji = self.emojis.get(commit_type, "📌")
+    #         doc.append(f"# {emoji} {commit_type.capitalize()}s {' ' * 3}<a name='{commit_type}s'></a>\n")
+
+    #         for scope, commits_list in scopes.items():
+    #             doc.append(f"<details open><summary><h2>📦 `{scope}`</h2></summary>\n")
+
+    #             for commit in commits_list:
+    #                 doc.extend([
+    #                     "<table>",
+    #                     "<tr>",
+    #                     f"<td><h3>{commit['title']}</h3></td>",
+    #                     "</tr>",
+    #                     "<tr>",
+    #                     "<td>",
+    #                     f"👤 **Author:** {commit['author']}  ",
+    #                     f"📅 **Date:** {commit['date']}",
+    #                     "</td>",
+    #                     "</tr>"
+    #                 ])
+
+    #                 if commit['body']:
+    #                     doc.extend([
+    #                         "<tr>",
+    #                         "<td>",
+    #                         "",
+    #                         "**Details:**",
+    #                         "<pre>",
+    #                         commit['body'],
+    #                         "</pre>",
+    #                         "</td>",
+    #                         "</tr>"
+    #                     ])
+
+    #                 if commit['refs']:
+    #                     doc.extend([
+    #                         "<tr>",
+    #                         "<td>",
+    #                         f"🔗 **References:** {', '.join(commit['refs'])}",
+    #                         "</td>",
+    #                         "</tr>"
+    #                     ])
+
+    #                 doc.extend([
+    #                     "</table>",
+    #                     "",
+    #                     "<br>"
+    #                 ])
+
+    #             doc.append("</details>\n")
+
+    #     return "\n".join(doc)
+
+    def _style_scope_tag(self, scope: str) -> str:
+        return f"""<kbd style="
+            background-color: #0366d6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: monospace;
+        ">{scope}</kbd>"""
+
     def generate(self, commits: Dict) -> str:
         today = datetime.now().strftime("%d %B %Y")
         repo_info = f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
 
+        # Add CSS styles
         doc = [
+            "<style>",
+            """
+            .commit-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border-radius: 8px;
+                margin: 16px 0;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            }
+            .commit-table tr {
+                background-color: #ffffff;
+                transition: background-color 0.2s;
+            }
+            .commit-table tr:hover {
+                background-color: #f6f8fa;
+            }
+            .commit-table td {
+                padding: 12px 16px;
+                border-bottom: 1px solid #e1e4e8;
+            }
+            .commit-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #24292e;
+            }
+            .commit-meta {
+                color: #586069;
+                font-size: 13px;
+            }
+            .commit-body {
+                background-color: #f6f8fa;
+                border-radius: 6px;
+                padding: 12px;
+                margin: 8px 0;
+                font-family: monospace;
+            }
+            .section-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 24px 0 16px;
+            }
+            """,
+            "</style>",
             "<div align='center'>",
-            "",
-            "# 📄 Detailed Commit Report",
-            "",
-            f"[![Last Updated]({today})](#{today.lower().replace(' ', '-')})",
-            f"[![Repository]({repo_info})](https://github.com/{repo_info})",
-            "",
-            "</div>",
-            "",
-            "---",
-            "",
-            "## 📋 Table of Contents\n"
+            # ... rest of the header ...
         ]
 
-        # Generate TOC
-        for commit_type in commits.keys():
-            if commits[commit_type]:
-                emoji = self.emojis.get(commit_type, "📌")
-                doc.append(f"- [{emoji} {commit_type.capitalize()}s](#{commit_type}s)")
-
-        doc.append("\n---\n")
-
-        # Generate content
         for commit_type, scopes in commits.items():
             if not scopes:
                 continue
 
             emoji = self.emojis.get(commit_type, "📌")
-            doc.append(f"# {emoji} {commit_type.capitalize()}s {' ' * 3}<a name='{commit_type}s'></a>\n")
+            doc.append(f'<div class="section-title" id="{commit_type}s">')
+            doc.append(f'<h1>{emoji} {commit_type.capitalize()}s</h1>')
+            doc.append('</div>\n')
 
             for scope, commits_list in scopes.items():
-                doc.append(f"<details open><summary><h2>📦 `{scope}`</h2></summary>\n")
+                doc.append(f'<details open>')
+                doc.append(f'<summary><h2>{self._style_scope_tag(scope)}</h2></summary>\n')
 
                 for commit in commits_list:
                     doc.extend([
-                        "<table>",
-                        "<tr>",
-                        f"<td><h3>{commit['title']}</h3></td>",
-                        "</tr>",
-                        "<tr>",
-                        "<td>",
-                        f"👤 **Author:** {commit['author']}  ",
-                        f"📅 **Date:** {commit['date']}",
-                        "</td>",
-                        "</tr>"
+                        '<table class="commit-table">',
+                        '<tr>',
+                        f'<td><div class="commit-title">{commit["title"]}</div>',
+                        f'<div class="commit-meta">',
+                        f'👤 {commit["author"]} • 📅 {commit["date"]}',
+                        '</div></td>',
+                        '</tr>'
                     ])
 
                     if commit['body']:
                         doc.extend([
-                            "<tr>",
-                            "<td>",
-                            "",
-                            "**Details:**",
-                            "<pre>",
+                            '<tr>',
+                            '<td>',
+                            '<div class="commit-body">',
                             commit['body'],
-                            "</pre>",
-                            "</td>",
-                            "</tr>"
+                            '</div>',
+                            '</td>',
+                            '</tr>'
                         ])
 
                     if commit['refs']:
                         doc.extend([
-                            "<tr>",
-                            "<td>",
-                            f"🔗 **References:** {', '.join(commit['refs'])}",
-                            "</td>",
-                            "</tr>"
+                            '<tr>',
+                            '<td class="commit-meta">',
+                            f'🔗 {", ".join(commit["refs"])}',
+                            '</td>',
+                            '</tr>'
                         ])
 
-                    doc.extend([
-                        "</table>",
-                        "",
-                        "<br>"
-                    ])
+                    doc.append('</table>\n')
 
-                doc.append("</details>\n")
+                doc.append('</details>\n')
 
-        return "\n".join(doc)
+        return '\n'.join(doc)
 
 class ReleaseChangelogStrategy(ReportStrategy):
     emojis = {
@@ -308,6 +328,17 @@ class ReleaseChangelogStrategy(ReportStrategy):
         "test": "🧪",
         "chore": "🔧"
     }
+
+    def _style_scope_tag(self, scope: str) -> str:
+        return f"""<kbd style="
+            background-color: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: monospace;
+        ">{scope}</kbd>"""
         
     def generate(self, commits: Dict) -> str:
         today = datetime.now().strftime("%d %B %Y")
@@ -331,49 +362,80 @@ class ReleaseChangelogStrategy(ReportStrategy):
 
         priority_order = ['feat', 'fix', 'perf', 'refactor', 'docs', 'style', 'test', 'chore']
         
+        # for type_name in priority_order:
+        #     if type_name not in commits or not commits[type_name]:
+        #         continue
+
+        #     emoji = self.emojis.get(type_name, "📌")
+        #     doc.append(f"### {emoji} {type_name.capitalize()}s\n")
+
+        #     for scope, commits_list in commits[type_name].items():
+        #         doc.append(f"<details open><summary><b>📦 `{scope}`</b></summary>\n")
+        #         doc.append("<div class='release-notes'>\n")
+
+        #         for commit in commits_list:
+        #             entry = [
+        #                 "<table>",
+        #                 "<tr>",
+        #                 f"<td>- {commit['title']}</td>",
+        #                 "</tr>"
+        #             ]
+                    
+        #             entry.extend([
+        #                 "</table>",
+        #                 ""
+        #             ])
+                    
+        #             doc.extend(entry)
+
+        #         doc.extend([
+        #             "</div>",
+        #             "</details>\n"
+        #         ])
+        
+        # # Add footer
+        # doc.extend([
+        #     "---",
+        #     "",
+        #     "<div align='center'>",
+        #     "",
+        #     "⭐ **Thank you for using our software!** ⭐",
+        #     "",
+        #     "</div>"
+        # ])
+        
+        # return "\n".join(doc)
+
         for type_name in priority_order:
             if type_name not in commits or not commits[type_name]:
                 continue
 
             emoji = self.emojis.get(type_name, "📌")
-            doc.append(f"### {emoji} {type_name.capitalize()}s\n")
+            doc.append(f'<div class="section-title">')
+            doc.append(f'<h3>{emoji} {type_name.capitalize()}s</h3>')
+            doc.append('</div>\n')
 
             for scope, commits_list in commits[type_name].items():
-                doc.append(f"<details open><summary><b>📦 `{scope}`</b></summary>\n")
-                doc.append("<div class='release-notes'>\n")
+                doc.append(f'<details open>')
+                doc.append(f'<summary>{self._style_scope_tag(scope)}</summary>\n')
+                doc.append('<div class="release-notes">\n')
 
                 for commit in commits_list:
-                    entry = [
-                        "<table>",
-                        "<tr>",
-                        f"<td>- {commit['title']}</td>",
-                        "</tr>"
-                    ]
-                    
-                    entry.extend([
-                        "</table>",
-                        ""
+                    doc.extend([
+                        '<table class="commit-table">',
+                        '<tr>',
+                        f'<td class="commit-title">{commit["title"]}</td>',
+                        '</tr>'
                     ])
                     
-                    doc.extend(entry)
+                    doc.append('</table>\n')
 
                 doc.extend([
-                    "</div>",
-                    "</details>\n"
+                    '</div>',
+                    '</details>\n'
                 ])
-        
-        # Add footer
-        doc.extend([
-            "---",
-            "",
-            "<div align='center'>",
-            "",
-            "⭐ **Thank you for using our software!** ⭐",
-            "",
-            "</div>"
-        ])
-        
-        return "\n".join(doc)
+
+        return '\n'.join(doc)
 
 class ReportGeneratorFactory:
     @staticmethod
