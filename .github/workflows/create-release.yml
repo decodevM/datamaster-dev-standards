@@ -101,4 +101,4 @@ jobs:
         run: |
           gh release create "$NEW_TAG" \
             --title "$NEW_TAG" \
-            --notes "$CHANGELOG"
+            --notes "$(cat changelog.txt)"
