@@ -121,7 +121,16 @@ class ChangelogGenerator:
     def generate_full_markdown(self, commits: List[Dict]) -> str:
         today = datetime.now().strftime("%d %B %Y")
         full_changelog = [f"# Full Changelog\n\nGenerated on {today}\n"]
-
+        emojis = {
+            "feat": "✨",
+            "fix": "🐛",
+            "docs": "📚",
+            "style": "💎",
+            "refactor": "♻️",
+            "perf": "⚡️",
+            "test": "🧪",
+            "chore": "🔧",
+        }
         # Group commits by type
         categorized_commits = {t: {} for t in self.parser.TYPES}
         for commit in commits:
