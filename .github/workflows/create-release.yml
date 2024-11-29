@@ -89,6 +89,8 @@ jobs:
             CHANGELOG=$(git log --pretty=format:"- %s by @%an")
           fi
 
+          # Clean the changelog and store it in a new file
+          CHANGELOG=$(echo "$CHANGELOG" | sed 's/\r//' | sed 's/^ *//')  # Clean up line breaks and spaces
           echo -e "What's Changed\n\n$CHANGELOG" > changelog.txt
           cat changelog.txt
           echo "CHANGELOG=$(cat changelog.txt)" >> $GITHUB_ENV
