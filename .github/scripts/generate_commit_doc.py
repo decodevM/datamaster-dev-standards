@@ -117,6 +117,17 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         "chore": "🔧"
     }
     
+    priority_order = [
+        'feat',    # New features first
+        'fix',     # Bug fixes second
+        'perf',    # Performance improvements
+        'refactor',# Code refactoring
+        'docs',    # Documentation changes
+        'style',   # Style changes
+        'test',    # Test changes
+        'chore'    # Maintenance tasks last
+    ]
+    
     def _style_scope_tag(self, scope: str) -> str:
         return f"""<span class="scope-tag">{scope}</span>"""
 
@@ -234,7 +245,7 @@ class MarkdownCommitReportGenerator(ReportStrategy):
             "</header>"
         ]
 
-        for type_name in priority_order:
+        for type_name in self.priority_order:
             if type_name not in commits or not commits[type_name]:
                 continue
 
