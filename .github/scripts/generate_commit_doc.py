@@ -127,6 +127,18 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         'test',    # Test changes
         'chore'    # Maintenance tasks last
     ]
+
+    # Add type-specific colors
+    type_colors = {
+        "feat": "#2563eb",     # Blue
+        "fix": "#dc2626",      # Red
+        "docs": "#7c3aed",     # Purple
+        "style": "#db2777",    # Pink
+        "refactor": "#2dd4bf", # Teal
+        "perf": "#f59e0b",     # Amber
+        "test": "#10b981",     # Emerald
+        "chore": "#6b7280"     # Gray
+    }
     
     def _style_scope_tag(self, scope: str) -> str:
         return f"""<span class="scope-tag">{scope}</span>"""
@@ -138,6 +150,70 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         doc = [
             "<style>",
             """
+
+            /* Modern gradient header */
+            .header {
+                background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+                color: white;
+                padding: 3rem 2rem;
+                border-radius: 16px;
+                margin-bottom: 3rem;
+                text-align: center;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                background: linear-gradient(to right, #fff, #e2e8f0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+
+            /* Type headers with custom colors */
+            .type-header {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                margin: 2rem 0 1rem;
+                color: white;
+                font-weight: 600;
+                font-size: 1.25rem;
+                transition: transform 0.2s;
+            }
+
+            .type-header:hover {
+                transform: translateX(4px);
+            }
+
+            /* Scope tag enhancements */
+            .scope-tag {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                color: #475569;
+                font-weight: 500;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+            /* Add these color-specific classes */
+            .type-feat { background-color: #2563eb; }
+            .type-fix { background-color: #dc2626; }
+            .type-docs { background-color: #7c3aed; }
+            .type-style { background-color: #db2777; }
+            .type-refactor { background-color: #2dd4bf; }
+            .type-perf { background-color: #f59e0b; }
+            .type-test { background-color: #10b981; }
+            .type-chore { background-color: #6b7280; }
+        
+
             :root {
                 --color-bg: #ffffff;
                 --color-text: #24292e;
@@ -250,7 +326,11 @@ class MarkdownCommitReportGenerator(ReportStrategy):
                 continue
 
             emoji = self.emojis.get(type_name, "📌")
-            doc.append(f"<h2>{emoji} {type_name.capitalize()}s</h2>")
+            doc.append(
+                f'<div class="type-header type-{type_name}">'
+                f'{emoji} {type_name.capitalize()}s'
+                f'</div>'
+            )
 
             for scope, commits_list in commits[type_name].items():
                 doc.append("<details open>")
