@@ -225,6 +225,7 @@ import re
 import git
 from typing import Dict, List, Optional
 from datetime import datetime
+import logging
 
 # Define the emoji mapping for each commit type
 emojis = {
@@ -254,6 +255,10 @@ REFS_REGEX = "Refs: #[A-Za-z0-9-]+"  # Refs line regex
 COMMIT_MSG_PATTERN = re.compile(
     rf"^({TYPE_REGEX})\(({SCOPE_REGEX})\):\s*({SHORT_DESC_REGEX})(\s*{MULTILINE_DESC_REGEX})?\s*({REFS_REGEX})?$"
 )
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class CommitParser:
     def __init__(self):
@@ -347,10 +352,11 @@ class ChangelogGenerator:
         
         return changelog
 
-def save_changelog_to_file(changelog: str, filename: str):
-    with open(filename, "w") as f:
-        f.write(changelog)
-    print(f"Changelog saved to {filename}")
+def save_changelog(self, content: str, filename="generated_docs/CHANGELOG.md"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)  # Ensure the directory exists
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(content)
+    logger.info(f"Changelog saved to {filename}")
 
 def main():
     repo_path = "."  # Current directory (change to your repo path if needed)
@@ -359,11 +365,12 @@ def main():
     
     # Generate Full Changelog
     full_changelog = generator.generate_full_changelog()
-    save_changelog_to_file(full_changelog, "full_changelog.md")
+    save_changelog_to_file(full_changelog, "generated_docs/FULL_CHANGELOG.md")
+    
     
     # Generate Release Changelog
     release_changelog = generator.generate_release_changelog()
-    save_changelog_to_file(release_changelog, "release_changelog.md")
+    save_changelog_to_file(release_changelog, "generated_docs/RELEASE_CHANGELOG.md")
 
 if __name__ == "__main__":
     main()
