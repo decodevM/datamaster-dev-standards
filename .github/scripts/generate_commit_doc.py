@@ -831,10 +831,10 @@ class CommitDocument:
                         doc.append("  Description:")
                         doc.append('\t```text')
                         for line in commit['body'].splitlines():
-                            stripped_line = line.lstrip()
+                            # stripped_line = line.lstrip()
                             # leading_spaces = len(line) - len(stripped_line)
                             # tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
-                            doc.append(f"\t{stripped_line}")
+                            doc.append(f"\t{line}")
                         # doc.append(f"\t{commit['body']}")
                         doc.append('\t```')
 
