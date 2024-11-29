@@ -675,7 +675,7 @@ class CommitParser:
     def _create_commit_pattern(self):
         type_regex = "|".join(self.TYPES)
         return re.compile(
-            r"^(?P<type>" + type_regex + ")"
+            r"^(?P<type>" + type_regex + r")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
             r"(?:\n\n(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
@@ -702,7 +702,7 @@ class CommitParser:
                 "type": result.get("type", ""),
                 "scope": result.get("scope", ""),
                 "title": result.get("title", ""),
-                "body": result.get("body", "").strip() if result.get("body") else "",
+                "body": result.get("body", "").strip() if result.get("body") else None,
                 "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
             }
 
@@ -821,16 +821,18 @@ class CommitDocument:
                 doc.append(f"#### `{scope}`\n")
 
                 for commit in commits:
-                    doc.extend([
-                        f"- **{commit['title']}**",
-                        f"  *{commit['author']} - {commit['date']}*\n",
-                        f"  {commit['body']}\n" if commit['body'] else "",
-                        f"  🔗 {', '.join(commit['refs'])}\n" if commit['refs'] else "",
-                    ])
+                    doc.append(f"- **{commit['title']}**")
+                    doc.append(f"  *{commit['author']} - {commit['date']}*")
+                    
+                    if commit['body']:  # Include body if available
+                        doc.append(f"  - {commit['body']}")
 
-                doc.append("---\n")
+                    if commit['refs']:  # Include refs if available
+                        doc.append(f"  🔗 Refs: {', '.join(commit['refs'])}")
 
-        return "\n".join(filter(None, doc))
+                doc.append("---")
+
+        return "\n".join(doc)
 
     def save_document(self, content, filename="generated_docs/commit_document.md"):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
