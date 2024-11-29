@@ -1084,19 +1084,19 @@ class CommitDocumentManager:
                     tuple(parsed["refs"])
                 )
 
-            if commit_id not in seen:
-                seen.add(commit_id)
+                if commit_id not in seen:
+                    seen.add(commit_id)
 
-                if parsed["scope"] not in categorized[parsed["type"]]:
-                    categorized[parsed["type"]][parsed["scope"]] = []
+                    if parsed["scope"] not in categorized[parsed["type"]]:
+                        categorized[parsed["type"]][parsed["scope"]] = []
 
-                categorized[parsed["type"]][parsed["scope"]].append({
-                    "title": parsed["title"],
-                    "body": parsed["body"] or "",
-                    "author": author,
-                    "date": date,
-                    "refs": parsed["refs"]
-                })
+                    categorized[parsed["type"]][parsed["scope"]].append({
+                        "title": parsed["title"],
+                        "body": parsed["body"] or "",
+                        "author": author,
+                        "date": date,
+                        "refs": parsed["refs"]
+                    })
 
         return categorized
     
