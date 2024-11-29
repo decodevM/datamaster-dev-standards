@@ -265,7 +265,7 @@ class MarkdownCommitReportGenerator(ReportStrategy):
             }
 
             .commit-item {
-                background: var(--color-bg);
+                
                 border: 1px solid var(--color-border);
                 border-radius: var(--radius-base);
                 padding: 1rem;
