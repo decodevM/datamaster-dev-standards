@@ -829,13 +829,14 @@ class CommitDocument:
                     if commit['body']:
                         doc.append("  Description:")
                         doc.append('\t```text')
-                        doc.append(f"\t{commit['body']}")
+                        for line in commit['body'].splitlines():
+                            stripped_line = line.lstrip()
+                            # leading_spaces = len(line) - len(stripped_line)
+                            # tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
+                            doc.append(f"\t{stripped_line}")
+                        # doc.append(f"\t{commit['body']}")
                         doc.append('\t```')
-                        # for line in commit['body'].splitlines():
-                        #     stripped_line = line.lstrip()
-                        #     leading_spaces = len(line) - len(stripped_line)
-                        #     tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
-                        #     doc.append(f"{stripped_line}")
+
 
                     # Add refs with indentation
                     if commit['refs']:
