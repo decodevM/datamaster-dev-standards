@@ -827,11 +827,13 @@ class CommitDocument:
 
                     # Add body with indentation based on leading spaces
                     if commit['body']:
-                        for line in commit['body'].splitlines():
-                            stripped_line = line.lstrip()
-                            leading_spaces = len(line) - len(stripped_line)
-                            tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
-                            doc.append(f"{stripped_line}")
+                        doc.append("  Description:")
+                        doc.append(f"{stripped_line}")
+                        # for line in commit['body'].splitlines():
+                        #     stripped_line = line.lstrip()
+                        #     leading_spaces = len(line) - len(stripped_line)
+                        #     tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
+                        #     doc.append(f"{stripped_line}")
 
                     # Add refs with indentation
                     if commit['refs']:
