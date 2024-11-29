@@ -131,6 +131,7 @@ class ChangelogGenerator:
             "test": "🧪",
             "chore": "🔧",
         }
+        
         # Group commits by type
         categorized_commits = {t: {} for t in self.parser.TYPES}
         for commit in commits:
@@ -140,12 +141,13 @@ class ChangelogGenerator:
                 commit_type = parsed["type"]
                 scope = parsed["scope"]
                 title = parsed["title"]
-                body = commit["commit"].get("body", "")
-                refs = commit["commit"].get("refs", "")
+                body = commit["commit"].get("body", "")  # Get the commit body
+                refs = commit["commit"].get("refs", "")  # Get the refs
 
                 if scope not in categorized_commits[commit_type]:
                     categorized_commits[commit_type][scope] = []
 
+                # Store the commit with title, body, and refs in the categorized_commits
                 categorized_commits[commit_type][scope].append({
                     "title": title,
                     "body": body,
@@ -163,10 +165,10 @@ class ChangelogGenerator:
             for scope, commit_list in scopes.items():
                 full_changelog.append(f"### `{scope}`\n")
                 for commit in commit_list:
-                    full_changelog.append(f"- **{commit['title']}**")
-                    if commit['body']:
+                    full_changelog.append(f"- **{commit['title']}**")  # Display title
+                    if commit['body']:  # Only display body if it's not empty
                         full_changelog.append(f"  - Description: {commit['body']}")
-                    if commit['refs']:
+                    if commit['refs']:  # Only display refs if they exist
                         full_changelog.append(f"  - Refs: {commit['refs']}")
 
         return "\n".join(full_changelog)
