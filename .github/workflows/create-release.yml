@@ -1,4 +1,4 @@
-name: Create Release with Changelog
+name: Auto Release on Push to Main
 
 on:
   push:
@@ -12,83 +12,85 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      # Checkout the repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Git
+      # Set up GitHub CLI
+      - name: Set Up GitHub CLI
         run: |
+          sudo apt update
+          sudo apt install -y gh
+
+      # Create a new tag
+      - name: Create New Tag
+        id: create_tag
+        run: |
+          # Fetch all tags
           git fetch --tags
 
-      - name: Get the latest tag and current commit hash
-        id: tags
-        run: |
-          # Get the latest tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          echo "Previous tag: $PREVIOUS_TAG"
+          # Get the latest tag or default to v0.0.0 if no tags exist
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
 
-          # Get the current commit hash
-          CURRENT_COMMIT=$(git rev-parse HEAD)
-          echo "Current commit: $CURRENT_COMMIT"
+          # Parse the version number
+          VERSION_REGEX="^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$"
+          if [[ "$LATEST_TAG" =~ $VERSION_REGEX ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+            PATCH=${BASH_REMATCH[3]}
+          else
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          fi
 
-          # Define the new tag (e.g., vYYYY.MM.DD.HHMMSS)
-          NEW_TAG="v$(date -u +'%Y.%m.%d.%H%M%S')"
+          # Increment the patch version
+          PATCH=$((PATCH + 1))
+
+          # Create the new tag
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
           echo "New tag: $NEW_TAG"
 
-          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_ENV
-          echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_ENV
-          echo "new_tag=$NEW_TAG" >> $GITHUB_ENV
+          # Push the new tag to the repository
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
 
+          # Output the new tag
+          echo "tag=$NEW_TAG" >> $GITHUB_ENV
+
+      # Generate changelog
       - name: Generate Changelog
         id: changelog
         run: |
-          PREVIOUS_TAG=${{ env.previous_tag }}
-          NEW_TAG=${{ env.new_tag }}
+          # Fetch all tags
+          git fetch --tags
 
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous tag found, generating changelog from the beginning."
-            COMMITS=$(git log --pretty=format:"%H|%s|%an")
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+
+          # Generate the changelog
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            echo "Comparing $PREVIOUS_TAG...$NEW_TAG"
+            CHANGELOG=$(git log $PREVIOUS_TAG..$NEW_TAG --pretty=format:"- %s by @%an")
           else
-            echo "Generating changelog from $PREVIOUS_TAG to $NEW_TAG."
-            COMMITS=$(git log --pretty=format:"%H|%s|%an" "$PREVIOUS_TAG..HEAD")
+            echo "No previous tag found. Using all commits for changelog."
+            CHANGELOG=$(git log --pretty=format:"- %s by @%an")
           fi
 
-          changelog="### What's Changed\n"
+          echo -e "What's Changed\n\n$CHANGELOG" > changelog.txt
+          cat changelog.txt
+          echo "changelog=$(cat changelog.txt)" >> $GITHUB_ENV
 
-          if [ -z "$COMMITS" ]; then
-            changelog+="No changes since the last release.\n"
-          else
-            while IFS= read -r commit; do
-              hash=$(echo "$commit" | cut -d'|' -f1)
-              message=$(echo "$commit" | cut -d'|' -f2)
-              author=$(echo "$commit" | cut -d'|' -f3)
-
-              if [[ "$message" =~ ^(feat|fix|style|docs|chore)\(([^)]+)\):\ (.+) ]]; then
-                type=${BASH_REMATCH[1]}
-                scope=${BASH_REMATCH[2]}
-                description=${BASH_REMATCH[3]}
-                changelog+="- **$type($scope)**: [$description](https://github.com/$GITHUB_REPOSITORY/commit/$hash) by @$author\n"
-              else
-                changelog+="- $message: [Details](https://github.com/$GITHUB_REPOSITORY/commit/$hash) by @$author\n"
-              fi
-            done <<< "$COMMITS"
-          fi
-
-          echo "::set-output name=changelog::$changelog"
-        shell: bash
-
-      - name: Create New Tag
-        run: |
-          git tag ${{ env.new_tag }}
-          git push origin ${{ env.new_tag }}
-
+      # Create a release
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEW_TAG=${{ env.new_tag }}
-          CHANGELOG="${{ steps.changelog.outputs.changelog }}"
-          
           gh release create "$NEW_TAG" \
-              --title "Release $NEW_TAG" \
-              --notes "$CHANGELOG"
+            --title "$NEW_TAG" \
+            --notes "$CHANGELOG"
