@@ -824,19 +824,22 @@ class CommitDocument:
                     # Title with author and date
                     doc.append(f"- **{commit['title']}**")
                     doc.append(f"  *{commit['author']} - {commit['date']}*")
-                    
-                    # Add body with indentation
+
+                    # Add body with full indentation
                     if commit['body']:
-                        doc.append(f"\t- {commit['body']}")  # Use a tab for indentation
+                        for line in commit['body'].splitlines():
+                            doc.append(f"\t- {line.strip()}")  # Tab for each line
 
                     # Add refs with indentation
                     if commit['refs']:
-                        doc.append(f"\t🔗 Refs: {', '.join(commit['refs'])}")  # Use a tab for indentation
+                        for ref in commit['refs']:
+                            doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
 
                 doc.append("---")  # Separator for each scope
 
         return "\n".join(doc)
-
+    
+    
     def save_document(self, content, filename="generated_docs/commit_document.md"):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w', encoding='utf-8') as f:
