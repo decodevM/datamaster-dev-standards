@@ -678,8 +678,8 @@ class CommitParser:
             r"^(?P<type>" + type_regex + r")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:\n\n(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
-            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",  # Match refs
+            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
+            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
             re.DOTALL
         )
 
