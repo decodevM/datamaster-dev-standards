@@ -831,7 +831,7 @@ class CommitDocument:
                             stripped_line = line.lstrip()
                             leading_spaces = len(line) - len(stripped_line)
                             tab_count = leading_spaces // 4  # Assume 1 tab = 4 spaces
-                            doc.append(f"{'- ' * tab_count}- {stripped_line}")
+                            doc.append(f"{stripped_line}")
 
                     # Add refs with indentation
                     if commit['refs']:
