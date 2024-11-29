@@ -655,8 +655,6 @@
 
 
 
-
-
 import os
 import re
 from datetime import datetime
@@ -667,6 +665,7 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 class CommitParser:
     def __init__(self):
@@ -679,9 +678,9 @@ class CommitParser:
             r"^(?P<type>" + type_regex + ")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
-            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Match for the footer
-            r"$", re.DOTALL
+            r"(?:\n\n(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
+            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?$",  # Match refs
+            re.DOTALL
         )
 
     def parse(self, message: str) -> Optional[Dict]:
@@ -692,13 +691,13 @@ class CommitParser:
 
             message = message.strip()
             match = self.commit_pattern.match(message)
-            
+
             if not match:
                 logger.debug(f"No match found for message: {message}")
                 return None
 
             result = match.groupdict()
-            
+
             return {
                 "type": result.get("type", ""),
                 "scope": result.get("scope", ""),
@@ -706,10 +705,11 @@ class CommitParser:
                 "body": result.get("body", "").strip() if result.get("body") else "",
                 "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
             }
-            
+
         except Exception as e:
             logger.error(f"Error parsing commit message: {e}")
             return None
+
 
 class CommitDocument:
     def __init__(self):
@@ -724,53 +724,70 @@ class CommitDocument:
             "Authorization": f"token {self.github_token}",
             "Accept": "application/vnd.github.v3+json"
         }
-        
+
         commits = []
         page = 1
-        
+
         while True:
             try:
                 response = requests.get(
-                    url, 
+                    url,
                     headers=headers,
                     params={"sha": branch, "page": page}
                 )
                 response.raise_for_status()
-                
+
                 data = response.json()
                 if not data:
                     break
-                    
+
                 commits.extend(data)
                 page += 1
-                
+
             except Exception as e:
                 logger.error(f"Error fetching commits: {e}")
+                break
+
         return commits
 
     def categorize_commits(self, commits):
-        categorized = {t: {} for t in self.parser.TYPES}
-        
+        categorized = {t: {} for t in self.parser.TYPES}  # Group by type and scope
+        seen = set()  # Set to track unique commit identifiers
+
         for commit in commits:
             message = commit["commit"]["message"]
             author = commit["commit"]["author"]["name"]
             date = datetime.strptime(
-                commit["commit"]["author"]["date"], 
+                commit["commit"]["author"]["date"],
                 "%Y-%m-%dT%H:%M:%SZ"
             ).strftime("%d %B %Y %H:%M")
-            
+
             parsed = self.parser.parse(message)
             if parsed:
+                # Create a unique identifier for the commit
+                commit_id = (
+                    parsed["type"],
+                    parsed["scope"],
+                    parsed["title"],
+                    parsed["body"],
+                    tuple(parsed["refs"])
+                )
+
+                if commit_id in seen:  # Skip duplicates
+                    continue
+
+                seen.add(commit_id)  # Mark this commit as seen
+
                 commit_info = {
                     **parsed,
                     "date": date,
                     "author": author
                 }
-                scope = parsed["scope"] or "no-scope"
-                if scope not in categorized[parsed["type"]]:
-                    categorized[parsed["type"]][scope] = []
-                categorized[parsed["type"]][scope].append(commit_info)
-                
+
+                # Add to categorized commits by type and scope
+                scope_group = categorized[parsed["type"]].setdefault(parsed["scope"], [])
+                scope_group.append(commit_info)
+
         return categorized
 
     def generate_markdown(self, categorized_commits):
@@ -784,33 +801,35 @@ class CommitDocument:
             "test": "🧪",
             "chore": "🔧"
         }
-        
+
         today = datetime.now().strftime("%d %B %Y")
-        
+
         doc = [
             "# 📄 Commit Report",
             f"*Generated on {today}*\n",
             "## 🏢 Project Commits\n"
         ]
-        
+
         for commit_type, scopes in categorized_commits.items():
             if not scopes:
                 continue
-                
+
             emoji = emojis.get(commit_type, "📌")
             doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
-            
+
             for scope, commits in scopes.items():
-                doc.append(f"#### Scope: `{scope}`\n")
+                doc.append(f"#### `{scope}`\n")
+
                 for commit in commits:
                     doc.extend([
                         f"- **{commit['title']}**",
                         f"  *{commit['author']} - {commit['date']}*\n",
                         f"  {commit['body']}\n" if commit['body'] else "",
                         f"  🔗 {', '.join(commit['refs'])}\n" if commit['refs'] else "",
-                        ""
                     ])
-                    
+
+                doc.append("---\n")
+
         return "\n".join(filter(None, doc))
 
     def save_document(self, content, filename="generated_docs/commit_document.md"):
@@ -819,17 +838,19 @@ class CommitDocument:
             f.write(content)
         print(f"✅ Document saved to: {filename}")
 
+
 def main():
     doc_generator = CommitDocument()
     commits = doc_generator.fetch_commits()
-    
+
     if not commits:
         print("❌ No commits found")
         return
-        
+
     categorized = doc_generator.categorize_commits(commits)
     markdown = doc_generator.generate_markdown(categorized)
     doc_generator.save_document(markdown)
+
 
 if __name__ == "__main__":
     main()
