@@ -1,11 +1,10 @@
 import os
+import logging
 
-from base_interfaces import CommitDocumentManager
-from commit_fetcher import CommitFetcher
-from basic_commit_parser import CommitParser
+from base_interfaces import CommitFetcher, CommitParser
+from commit_document_manager import CommitDocumentManager
 from report_generator_factory import ReportGeneratorFactory
 from datetime import datetime
-import logging
 
 # Configure logging
 logging.basicConfig(
