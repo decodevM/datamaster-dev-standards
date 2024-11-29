@@ -828,7 +828,7 @@ class CommitDocument:
                     # Add body with indentation based on leading spaces
                     if commit['body']:
                         doc.append("  Description:")
-                        doc.append('\t```')
+                        doc.append('\t```text')
                         doc.append(f"\t{commit['body']}")
                         doc.append('\t```')
                         # for line in commit['body'].splitlines():
