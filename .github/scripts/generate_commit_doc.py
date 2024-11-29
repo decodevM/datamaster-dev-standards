@@ -1,164 +1,161 @@
 import os
-import re
 import requests
 from datetime import datetime
-from typing import Dict, List, Optional
-import logging
+import re
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Constants
+COMMIT_TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
+GITHUB_API_URL = "https://api.github.com"
 
-class CommitParser:
+# Environment variables
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+REPO_OWNER = os.getenv('REPO_OWNER')
+REPO_NAME = os.getenv('REPO_NAME')
+
+class CommitDocument:
     def __init__(self):
-        self.TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
         self.commit_pattern = self._create_commit_pattern()
-
+        
     def _create_commit_pattern(self):
-        type_regex = "|".join(self.TYPES)
-        return re.compile(
-            rf"^(?P<type>{type_regex})"
-            r"\((?P<scope>[^)]+)\):\s*"
-            r"(?P<title>[^\n]+)$",
-            re.DOTALL,
-        )
+        type_regex = "|".join(COMMIT_TYPES)
+        return f"^({type_regex})\\((.*?)\\):\\s*(.*?)(\\n[\\s\\S]*)?$"
 
-    def parse(self, message: str) -> Optional[Dict]:
-        match = self.commit_pattern.match(message.strip())
-        if match:
-            return match.groupdict()
-        return None
-
-
-class ChangelogGenerator:
-    def __init__(self):
-        self.parser = CommitParser()
-        self.github_token = os.getenv("GITHUB_TOKEN")
-        self.repo_owner = os.getenv("REPO_OWNER")
-        self.repo_name = os.getenv("REPO_NAME")
-
-    def fetch_commits(self, branch="main") -> List[Dict]:
-        url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/commits"
+    def fetch_commits(self, branch="main"):
+        url = f"{GITHUB_API_URL}/repos/{REPO_OWNER}/{REPO_NAME}/commits"
         headers = {
-            "Authorization": f"token {self.github_token}",
-            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
         }
-
+        
         commits = []
         page = 1
+        
         while True:
             response = requests.get(
-                url, headers=headers, params={"sha": branch, "page": page, "per_page": 100}
+                url, 
+                headers=headers,
+                params={"sha": branch, "page": page}
             )
+            
             if response.status_code != 200:
-                logger.error(f"Failed to fetch commits: {response.json()}")
+                print(f"Error fetching commits: {response.status_code}")
                 break
-
+                
             data = response.json()
             if not data:
                 break
-
+                
             commits.extend(data)
             page += 1
-
+            
         return commits
 
-    def categorize_commits(self, commits: List[Dict]) -> Dict[str, Dict[str, List[str]]]:
-        categorized = {t: {} for t in self.parser.TYPES}
-        seen_commits = set()  # Use a set to track unique commits
-
-        for commit in commits:
-            message = commit["commit"]["message"]
-            parsed = self.parser.parse(message)
-            if parsed:
-                # Create a unique identifier for each commit
-                unique_identifier = f"{parsed['type']}::{parsed['scope']}::{parsed['title']}"
-                
-                if unique_identifier in seen_commits:
-                    continue  # Skip duplicate commits
-                
-                seen_commits.add(unique_identifier)  # Mark as seen
-                
-                commit_type = parsed["type"]
-                scope = parsed["scope"]
-                title = parsed["title"]
-
-                if scope not in categorized[commit_type]:
-                    categorized[commit_type][scope] = []
-                categorized[commit_type][scope].append(title)
-
-        return categorized
-
-    def generate_markdown(self, categorized_commits: Dict[str, Dict[str, List[str]]]) -> str:
-        emojis = {
-            "feat": "✨",
-            "fix": "🐛",
-            "docs": "📚",
-            "style": "💎",
-            "refactor": "♻️",
-            "perf": "⚡️",
-            "test": "🧪",
-            "chore": "🔧",
+    def parse_commit_message(self, message):
+        match = re.match(self.commit_pattern, message, re.MULTILINE)
+        if not match:
+            return None
+            
+        commit_type, scope, title, body = match.groups()
+        # Remove the "Required scripts are:" section and everything after it
+        if body:
+            body = body.split("Required scripts are:")[0].strip()
+            
+        return {
+            "type": commit_type,
+            "scope": scope or "general",
+            "title": title.strip(),
+            "body": body
         }
 
+    def categorize_commits(self, commits):
+        categorized = {t: [] for t in COMMIT_TYPES}
+        
+        for commit in commits:
+            message = commit["commit"]["message"]
+            author = commit["commit"]["author"]["name"]
+            date = commit["commit"]["author"]["date"]
+            
+            parsed = self.parse_commit_message(message)
+            if parsed:
+                commit_info = {
+                    "scope": parsed["scope"],
+                    "title": parsed["title"],
+                    "description": parsed["body"],
+                    "date": date,
+                    "author": author
+                }
+                categorized[parsed["type"]].append(commit_info)
+                
+        return categorized
+
+    def generate_markdown(self, categorized_commits):
         today = datetime.now().strftime("%d %B %Y")
-        changelog = [f"# Changelog\n\nGenerated on {today}\n"]
-
-        for commit_type, scopes in categorized_commits.items():
-            if not scopes:
+        
+        doc = [
+            "# Rapport des Commits",
+            f"Generated on {today}\n",
+            "## Client: Project Name\n",
+            "## Commit Details"
+        ]
+        
+        for commit_type in COMMIT_TYPES:
+            commits = categorized_commits[commit_type]
+            if not commits:
                 continue
+                
+            doc.append(f"### {commit_type.capitalize()}s")
+            
+            for idx, commit in enumerate(commits, 1):
+                doc.extend([
+                    f"{commit_type.capitalize()} {idx}: ({commit['scope']}) {commit['title']}",
+                    f"    Description: {commit['description']}" if commit['description'] else "",
+                    f"    Date: {commit['date']}",
+                    f"    Author: {commit['author']}\n"
+                ])
+                
+        return "\n".join(filter(None, doc))
 
-            emoji = emojis.get(commit_type, "📌")
-            changelog.append(f"## {emoji} {commit_type.capitalize()}s\n")
-
-            for scope, titles in scopes.items():
-                changelog.append(f"### `{scope}`\n")
-                for title in titles:
-                    changelog.append(f"- {title}")
-
-        return "\n".join(changelog)
-
-    def generate_full_markdown(self, commits: List[Dict]) -> str:
+    def generate_full_markdown(self, commits):
         today = datetime.now().strftime("%d %B %Y")
         full_changelog = [f"# Full Changelog\n\nGenerated on {today}\n"]
 
         for commit in commits:
             author = commit["commit"]["author"]["name"]
             message = commit["commit"]["message"]
-            full_changelog.append(f"## {author} - {commit['sha']}\n")
-            full_changelog.append(f"- {message}")
+            sha = commit["sha"]
+            full_changelog.append(f"## {author} - {sha}\n")
+            full_changelog.append(f"- {message}\n")
 
         return "\n".join(full_changelog)
 
-    def save_changelog(self, content: str, filename="generated_docs/CHANGELOG.md"):
-        os.makedirs(os.path.dirname(filename), exist_ok=True)  # Ensure the directory exists
-        with open(filename, "w", encoding="utf-8") as f:
+    def save_document(self, content, filename="generated_docs/commit_document.md"):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w') as f:
             f.write(content)
-        logger.info(f"Changelog saved to {filename}")
+        print(f"Document saved to: {filename}")
 
 
 def main():
-    # Ensure required environment variables are set
-    for env_var in ["GITHUB_TOKEN", "REPO_OWNER", "REPO_NAME"]:
-        if not os.getenv(env_var):
-            logger.error(f"Environment variable {env_var} is missing!")
-            return
-
-    branch = os.getenv("BRANCH", "main")
-
-    generator = ChangelogGenerator()
-    commits = generator.fetch_commits(branch=branch)
-
+    doc_generator = CommitDocument()
+    
+    # Fetch and process commits
+    commits = doc_generator.fetch_commits()
     if not commits:
-        logger.error("No commits found. Exiting.")
+        print("No commits found")
         return
-
-    categorized_commits = generator.categorize_commits(commits)
-    release_changelog = generator.generate_markdown(categorized_commits)
-    generator.save_changelog(release_changelog, "generated_docs/RELEASE_CHANGELOG.md")
-
-    full_changelog = generator.generate_full_markdown(commits)
-    generator.save_changelog(full_changelog, "generated_docs/FULL_CHANGELOG.md")
+        
+    # Categorize commits and generate documents
+    categorized_commits = doc_generator.categorize_commits(commits)
+    markdown = doc_generator.generate_markdown(categorized_commits)
+    
+    # Save categorized changelog
+    doc_generator.save_document(markdown, "generated_docs/commit_changelog.md")
+    
+    # Generate and save full changelog
+    full_changelog = doc_generator.generate_full_markdown(commits)
+    doc_generator.save_document(full_changelog, "generated_docs/full_changelog.md")
+    
+    print("Commit documents generated successfully!")
 
 
 if __name__ == "__main__":
