@@ -16,8 +16,3 @@ class ReportStrategy(ABC):
     @abstractmethod
     def generate(self, commits: Dict) -> str:
         pass
-
-class ReportStrategy(ABC):
-    @abstractmethod
-    def generate(self, commits: Dict) -> str:
-        pass

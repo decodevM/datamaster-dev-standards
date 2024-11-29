@@ -1,8 +1,6 @@
-from datetime import datetime
+
 from typing import Dict, List, Set, Tuple, Optional
 from dataclasses import dataclass
-from base_interfaces import CommitFetcher, CommitParser
-from basic_commit_parser import BasicCommitParser
 
 @dataclass
 class CommitInfo:

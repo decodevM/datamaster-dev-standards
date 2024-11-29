@@ -1,6 +1,6 @@
 import os
 
-from base_interfaces import BaseReportStrategy
+from  base_report_strategy import  BaseReportStrategy
 from typing import Dict
 from datetime import datetime
 

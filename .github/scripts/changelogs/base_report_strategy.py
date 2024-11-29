@@ -1,4 +1,5 @@
-from base_interfaces import ReportStrategy, StyleConfig
+from base_interfaces import ReportStrategy
+from style_config import StyleConfig
 from typing import Dict, List
 
 class BaseReportStrategy(ReportStrategy, StyleConfig):

@@ -1,16 +1,12 @@
 
-from base_interfaces import BaseReportStrategy
+from base_report_strategy import BaseReportStrategy
 from datetime import datetime
 from typing import Dict
 
 class ReleaseChangelogReportGenerator(BaseReportStrategy):
     def _generate_commit_item(self, commit: Dict) -> str:
         """Generate markup for a release commit item"""
-        elements = [
-            "<li class='commit-item'>",
-            f"<div class='commit-title'>{commit['title']}</div>"
-        ]
-        elements.append("</li>")
+        elements = ["<li class='commit-item'>", f"<div class='commit-title'>{commit['title']}</div>", "</li>"]
         return '\n'.join(elements)
 
     def _generate_version_info(self) -> tuple[str, str]:
