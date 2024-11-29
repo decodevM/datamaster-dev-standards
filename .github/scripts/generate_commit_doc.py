@@ -122,20 +122,43 @@ class ChangelogGenerator:
         today = datetime.now().strftime("%d %B %Y")
         full_changelog = [f"# Full Changelog\n\nGenerated on {today}\n"]
 
+        # Group commits by type
+        categorized_commits = {t: {} for t in self.parser.TYPES}
         for commit in commits:
-            author = commit["commit"]["author"]["name"]
             message = commit["commit"]["message"]
-            body = commit["commit"].get("body", "").strip()  # Get the body (description)
-            refs = self.extract_refs(message)
+            parsed = self.parser.parse(message)
+            if parsed:
+                commit_type = parsed["type"]
+                scope = parsed["scope"]
+                title = parsed["title"]
+                body = commit["commit"].get("body", "")
+                refs = commit["commit"].get("refs", "")
 
-            full_changelog.append(f"## {author}\n")
-            full_changelog.append(f"- {message}")
-            
-            if body:
-                full_changelog.append(f"    **Description:** {body}")
+                if scope not in categorized_commits[commit_type]:
+                    categorized_commits[commit_type][scope] = []
 
-            if refs:
-                full_changelog.append(f"    **Refs:** {', '.join(refs)}")
+                categorized_commits[commit_type][scope].append({
+                    "title": title,
+                    "body": body,
+                    "refs": refs,
+                })
+
+        # Format categorized commits
+        for commit_type, scopes in categorized_commits.items():
+            if not scopes:
+                continue
+
+            emoji = emojis.get(commit_type, "📌")
+            full_changelog.append(f"## {emoji} {commit_type.capitalize()}s\n")
+
+            for scope, commit_list in scopes.items():
+                full_changelog.append(f"### `{scope}`\n")
+                for commit in commit_list:
+                    full_changelog.append(f"- **{commit['title']}**")
+                    if commit['body']:
+                        full_changelog.append(f"  - Description: {commit['body']}")
+                    if commit['refs']:
+                        full_changelog.append(f"  - Refs: {commit['refs']}")
 
         return "\n".join(full_changelog)
 
