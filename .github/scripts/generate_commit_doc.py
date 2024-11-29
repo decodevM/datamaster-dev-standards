@@ -365,12 +365,12 @@ def main():
     
     # Generate Full Changelog
     full_changelog = generator.generate_full_changelog()
-    save_changelog_to_file(full_changelog, "generated_docs/FULL_CHANGELOG.md")
+    save_changelog(full_changelog, "generated_docs/FULL_CHANGELOG.md")
     
     
     # Generate Release Changelog
     release_changelog = generator.generate_release_changelog()
-    save_changelog_to_file(release_changelog, "generated_docs/RELEASE_CHANGELOG.md")
+    save_changelog(release_changelog, "generated_docs/RELEASE_CHANGELOG.md")
 
 if __name__ == "__main__":
     main()
