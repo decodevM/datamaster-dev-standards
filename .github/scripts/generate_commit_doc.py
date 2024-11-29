@@ -832,13 +832,15 @@ class CommitDocument:
                         doc.append(f"\t```text")              # Open the code block
                         for line in commit['body'].splitlines():
                             doc.append(f"\t{line}")          # Add each line of the body with tab-based indentation
+
+                        # Add refs with indentation
+                        if commit['refs']:
+                            for ref in commit['refs']:
+                                doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
                         doc.append(f"\t```")                  # Close the code block
 
 
-                    # Add refs with indentation
-                    if commit['refs']:
-                        for ref in commit['refs']:
-                            doc.append(f"\t🔗 {ref.strip()}")  # Tab for each ref
+                    
 
                 doc.append("---")  # Separator for each scope
 
