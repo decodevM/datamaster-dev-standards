@@ -3,7 +3,7 @@ name: Auto Release on Push to Main
 on:
   push:
     branches:
-      - '*'
+      - main
 
 permissions:
   contents: write

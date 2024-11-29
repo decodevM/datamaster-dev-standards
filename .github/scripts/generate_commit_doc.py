@@ -63,7 +63,7 @@ class ChangelogGenerator:
 
         return commits
 
-    def categorize_commits(self, commits: List[Dict]) -> Dict[str, Dict[str, List[str]]]:
+    def categorize_commits(self, commits: List[Dict]) -> Dict[str, Dict[str, List[Dict]]]:
         categorized = {t: {} for t in self.parser.TYPES}
         seen_commits = set()  # Use a set to track unique commits
 
@@ -82,14 +82,22 @@ class ChangelogGenerator:
                 commit_type = parsed["type"]
                 scope = parsed["scope"]
                 title = parsed["title"]
+                body = commit["commit"].get("body", "")
+                author = commit["commit"]["author"]["name"]
+                footer = commit["commit"].get("footer", "")
 
                 if scope not in categorized[commit_type]:
                     categorized[commit_type][scope] = []
-                categorized[commit_type][scope].append(title)
+                categorized[commit_type][scope].append({
+                    "title": title,
+                    "body": body,
+                    "author": author,
+                    "footer": footer
+                })
 
         return categorized
 
-    def generate_markdown(self, categorized_commits: Dict[str, Dict[str, List[str]]]) -> str:
+    def generate_release_changelog(self, categorized_commits: Dict[str, Dict[str, List[Dict]]]) -> str:
         emojis = {
             "feat": "✨",
             "fix": "🐛",
@@ -111,10 +119,31 @@ class ChangelogGenerator:
             emoji = emojis.get(commit_type, "📌")
             changelog.append(f"## {emoji} {commit_type.capitalize()}s\n")
 
-            for scope, titles in scopes.items():
+            for scope, commits in scopes.items():
                 changelog.append(f"### `{scope}`\n")
-                for title in titles:
-                    changelog.append(f"- {title}")
+                for commit in commits:
+                    changelog.append(f"- {commit['title']}")
+
+        return "\n".join(changelog)
+
+    def generate_full_changelog(self, categorized_commits: Dict[str, Dict[str, List[Dict]]]) -> str:
+        today = datetime.now().strftime("%d %B %Y")
+        changelog = [f"# Full Changelog\n\nGenerated on {today}\n"]
+
+        for commit_type, scopes in categorized_commits.items():
+            if not scopes:
+                continue
+
+            changelog.append(f"## {commit_type.capitalize()}s\n")
+
+            for scope, commits in scopes.items():
+                changelog.append(f"### `{scope}`\n")
+                for commit in commits:
+                    changelog.append(f"- **{commit['title']}**\n")
+                    changelog.append(f"  - Body: {commit['body']}")
+                    changelog.append(f"  - Author: {commit['author']}")
+                    changelog.append(f"  - Footer: {commit['footer']}")
+                    changelog.append("")  # Add extra line for separation
 
         return "\n".join(changelog)
 
@@ -141,8 +170,14 @@ def main():
         return
 
     categorized_commits = generator.categorize_commits(commits)
-    changelog = generator.generate_markdown(categorized_commits)
-    generator.save_changelog(changelog)
+
+    # Generate the release changelog
+    release_changelog = generator.generate_release_changelog(categorized_commits)
+    generator.save_changelog(release_changelog, filename="RELEASE_CHANGELOG.md")
+
+    # Generate the full changelog for the managers
+    full_changelog = generator.generate_full_changelog(categorized_commits)
+    generator.save_changelog(full_changelog, filename="FULL_CHANGELOG.md")
 
 
 if __name__ == "__main__":
