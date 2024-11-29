@@ -150,168 +150,116 @@ class MarkdownCommitReportGenerator(ReportStrategy):
         doc = [
             "<style>",
             """
-
-            /* Modern gradient header */
-            .header {
-                background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
-                color: white;
-                padding: 3rem 2rem;
-                border-radius: 16px;
-                margin-bottom: 3rem;
-                text-align: center;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
-
-            .header h1 {
-                font-size: 2.5rem;
-                font-weight: 700;
-                margin-bottom: 1rem;
-                background: linear-gradient(to right, #fff, #e2e8f0);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-
-            .header p {
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }
-
-            /* Type headers with custom colors */
-            .type-header {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.75rem 1.5rem;
-                border-radius: 8px;
-                margin: 2rem 0 1rem;
-                color: white;
-                font-weight: 600;
-                font-size: 1.25rem;
-                transition: transform 0.2s;
-            }
-
-            .type-header:hover {
-                transform: translateX(4px);
-            }
-
-            /* Scope tag enhancements */
-            .scope-tag {
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
-                color: #475569;
-                font-weight: 500;
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            }
-
-            /* Add these color-specific classes */
-            .type-feat { background-color: #2563eb; }
-            .type-fix { background-color: #dc2626; }
-            .type-docs { background-color: #7c3aed; }
-            .type-style { background-color: #db2777; }
-            .type-refactor { background-color: #2dd4bf; }
-            .type-perf { background-color: #f59e0b; }
-            .type-test { background-color: #10b981; }
-            .type-chore { background-color: #6b7280; }
-        
-
             :root {
-                --color-bg: #ffffff;
-                --color-text: #24292e;
-                --color-text-secondary: #586069;
-                --color-border: #e1e4e8;
-                --color-surface: #f6f8fa;
-                --radius-base: 8px;
-                --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-                --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
-            }
-
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-                line-height: 1.5;
-                color: var(--color-text);
+                --primary: #2563eb;
+                --surface: #ffffff;
+                --surface-hover: #f8fafc;
+                --text: #24292e;
+                --text-light: #586069;
+                --border: #e1e4e8;
+                --radius: 8px;
+                --shadow: 0 1px 3px rgba(0,0,0,0.12);
+                --shadow-hover: 0 4px 6px rgba(0,0,0,0.1);
+                --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                --spacing: 1rem;
             }
 
             .container {
                 max-width: 960px;
                 margin: 0 auto;
-                padding: 2rem;
+                padding: calc(var(--spacing) * 2);
+                font-family: -apple-system, system-ui, sans-serif;
+                line-height: 1.5;
+                color: var(--text);
             }
 
             .header {
+                background: linear-gradient(135deg, #1a365d, var(--primary));
+                color: white;
+                padding: calc(var(--spacing) * 3) var(--spacing);
+                border-radius: calc(var(--radius) * 2);
+                margin-bottom: calc(var(--spacing) * 3);
                 text-align: center;
-                margin-bottom: 3rem;
+                box-shadow: var(--shadow);
             }
+
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                background: linear-gradient(to right, #fff, #e2e8f0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .type-header {
+                display: flex;
+                align-items: center;
+                gap: calc(var(--spacing) * 0.5);
+                padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
+                border-radius: var(--radius);
+                margin: calc(var(--spacing) * 2) 0;
+                color: white;
+                font-weight: 600;
+                transition: transform var(--transition);
+            }
+
+            .type-header:hover { transform: translateX(4px); }
 
             .scope-tag {
                 display: inline-block;
-                padding: 0.25rem 0.75rem;
-                background: var(--color-surface);
-                border-radius: var(--radius-base);
+                padding: calc(var(--spacing) * 0.25) calc(var(--spacing) * 0.75);
+                background: var(--surface-hover);
+                border-radius: var(--radius);
                 font-size: 0.875rem;
                 font-weight: 500;
-                color: var(--color-text);
-                margin: 0.5rem 0;
+                box-shadow: var(--shadow);
             }
 
             .commit-list {
                 list-style: none;
-                margin: 1rem 0;
+                margin: var(--spacing) 0;
             }
 
             .commit-item {
-                
-                border: 1px solid var(--color-border);
-                border-radius: var(--radius-base);
-                padding: 1rem;
-                margin-bottom: 1rem;
-                transition: transform 0.2s, box-shadow 0.2s;
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: var(--spacing);
+                margin-bottom: var(--spacing);
+                box-shadow: var(--shadow);
+                transition: all var(--transition);
             }
 
             .commit-item:hover {
                 transform: translateY(-2px);
-                box-shadow: var(--shadow-md);
+                box-shadow: var(--shadow-hover);
             }
 
             .commit-title {
-                font-size: 1rem;
                 font-weight: 600;
-                margin-bottom: 0.5rem;
+                margin-bottom: calc(var(--spacing) * 0.5);
             }
 
             .commit-meta {
                 font-size: 0.875rem;
-                color: var(--color-text-secondary);
-                margin-bottom: 0.5rem;
+                color: var(--text-light);
             }
 
             .commit-body {
-                background: var(--color-surface);
-                border-radius: var(--radius-base);
-                padding: 1rem;
-                margin: 0.5rem 0;
+                background: var(--surface-hover);
+                border-radius: var(--radius);
+                padding: var(--spacing);
+                margin: calc(var(--spacing) * 0.5) 0;
                 font-family: monospace;
                 white-space: pre-wrap;
-                font-size: 0.875rem;
             }
 
-            details {
-                margin: 1rem 0;
-            }
+            details { margin: var(--spacing) 0; }
+            summary { cursor: pointer; }
+            summary::-webkit-details-marker { display: none; }
 
-            summary {
-                cursor: pointer;
-                margin-bottom: 1rem;
-            }
-
-            summary::-webkit-details-marker {
-                display: none;
-            }
+            /* Type colors */
+            ${'.type-' + type}: { background: ${color}; }
+            ${' '.join([f'.type-{type} {{ background: {color}; }}' for type, color in self.type_colors.items()])}
             """,
             "</style>",
             "<div class='container'>",
@@ -363,7 +311,8 @@ class MarkdownCommitReportGenerator(ReportStrategy):
 
         doc.append("</div>")
         return '\n'.join(doc)
-
+    
+    
 class ReleaseChangelogStrategy(ReportStrategy):
     emojis = {
         "feat": "✨",
@@ -375,146 +324,147 @@ class ReleaseChangelogStrategy(ReportStrategy):
         "test": "🧪",
         "chore": "🔧"
     }
+    
+    type_colors = {
+        "feat": "#2563eb",     # Blue
+        "fix": "#dc2626",      # Red
+        "docs": "#7c3aed",     # Purple
+        "style": "#db2777",    # Pink
+        "refactor": "#2dd4bf", # Teal
+        "perf": "#f59e0b",     # Amber
+        "test": "#10b981",     # Emerald
+        "chore": "#6b7280"     # Gray
+    }
 
     def _style_scope_tag(self, scope: str) -> str:
-        return f"""<kbd style="
-            background-color: #353543;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            font-family: monospace;
-        ">{scope}</kbd>"""
-        
+        return f"""<span class="scope-tag">{scope}</span>"""
+
     def generate(self, commits: Dict) -> str:
         today = datetime.now().strftime("%d %B %Y")
         version = datetime.now().strftime("v%Y.%m.%d")
         repo_info = f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
-        
+
         doc = [
             "<style>",
-             """
+            """
             :root {
-                --md-sys-color-primary: #006495;
-                --md-sys-color-surface: #fdfbff;
-                --md-sys-color-surface-variant: #dde3ea;
-                --md-sys-color-on-surface: #1a1c1e;
-                --md-sys-color-on-surface-variant: #41474d;
-                --md-elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-                --md-elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+                --primary: #2563eb;
+                --surface: #ffffff;
+                --surface-hover: #f8fafc;
+                --text: #24292e;
+                --text-light: #586069;
+                --border: #e1e4e8;
+                --radius: 8px;
+                --shadow: 0 1px 3px rgba(0,0,0,0.12);
+                --shadow-hover: 0 4px 6px rgba(0,0,0,0.1);
+                --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                --spacing: 1rem;
             }
 
-            .md3-surface {
-                background-color: var(--md-sys-color-surface);
-                border-radius: 16px;
-                padding: 16px;
-                margin: 8px 0;
-                box-shadow: var(--md-elevation-1);
-                transition: box-shadow 0.2s;
+            .container {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: calc(var(--spacing) * 2);
+                font-family: -apple-system, system-ui, sans-serif;
             }
 
-            .md3-surface:hover {
-                box-shadow: var(--md-elevation-2);
+            .header {
+                background: linear-gradient(135deg, #1a365d, var(--primary));
+                color: white;
+                padding: calc(var(--spacing) * 3) var(--spacing);
+                border-radius: calc(var(--radius) * 2);
+                margin-bottom: calc(var(--spacing) * 3);
+                text-align: center;
+                box-shadow: var(--shadow);
             }
 
-            .md3-chip {
-                display: inline-flex;
-                align-items: center;
-                height: 32px;
-                padding: 0 12px;
-                border-radius: 8px;
-                background: var(--md-sys-color-surface-variant);
-                color: var(--md-sys-color-on-surface-variant);
-                font-size: 14px;
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                background: linear-gradient(to right, #fff, #e2e8f0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .scope-tag {
+                display: inline-block;
+                padding: calc(var(--spacing) * 0.25) calc(var(--spacing) * 0.75);
+                background: var(--surface-hover);
+                border-radius: var(--radius);
+                font-size: 0.875rem;
                 font-weight: 500;
-                line-height: 20px;
-                user-select: none;
+                box-shadow: var(--shadow);
+                transition: transform var(--transition);
             }
 
-            .md3-list {
+            .scope-tag:hover {
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-hover);
+            }
+
+            .commit-list {
                 list-style: none;
-                padding: 8px;
-                margin: 0;
+                margin: var(--spacing) 0;
             }
 
-            .md3-list-item {
-                margin: 8px 0;
+            .commit-item {
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: var(--spacing);
+                margin-bottom: var(--spacing);
+                box-shadow: var(--shadow);
+                transition: all var(--transition);
             }
 
-            .md3-headline-large {
-                font-size: 32px;
-                line-height: 40px;
-                font-weight: 400;
-                margin: 24px 0 16px;
+            .commit-item:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-hover);
             }
 
-            .md3-headline-medium {
-                font-size: 28px;
-                line-height: 36px;
-                font-weight: 400;
-                margin: 24px 0 16px;
+            .type-header {
+                display: flex;
+                align-items: center;
+                gap: calc(var(--spacing) * 0.5);
+                padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
+                border-radius: var(--radius);
+                margin: calc(var(--spacing) * 2) 0;
+                color: white;
+                font-weight: 600;
+                font-size: 1.25rem;
             }
 
-            .md3-body-large {
-                font-size: 16px;
-                line-height: 24px;
-                font-weight: 400;
-            }
-
-            .md3-body-medium {
-                font-size: 14px;
-                line-height: 20px;
-                font-weight: 400;
-                color: var(--md-sys-color-on-surface-variant);
-            }
-
-            .md3-code {
-                background: var(--md-sys-color-surface-variant);
-                border-radius: 8px;
-                padding: 16px;
-                margin: 8px 0;
-                font-family: monospace;
-                white-space: pre-wrap;
-            }
-
-            details summary {
-                cursor: pointer;
-                list-style: none;
-            }
-
-            details summary::-webkit-details-marker {
-                display: none;
-            }
+            /* Type colors */
+            ${' '.join([f'.type-{type} {{ background: {color}; }}' for type, color in type_colors.items()])}
             """,
             "</style>",
-            "<div align='center'>",
-            f"<h1 class='md3-headline-large'>🚀 Release {version}</h1>",
-            f"<p class='md3-body-medium'>Released on {today}</p>",
-            "</div>",
-            "<h2 class='md3-headline-medium'>📋 What's Changed</h2>"
+            "<div class='container'>",
+            "<header class='header'>",
+            f"<h1>🚀 Release {version}</h1>",
+            f"<p>Released on {today}</p>",
+            "</header>",
+            "<h2>📋 What's Changed</h2>"
         ]
 
-        priority_order = ['feat', 'fix', 'perf', 'refactor', 'docs', 'style', 'test', 'chore']
-
-        for type_name in priority_order:
+        for type_name in self.priority_order:
             if type_name not in commits or not commits[type_name]:
                 continue
 
             emoji = self.emojis.get(type_name, "📌")
-            doc.append(f"<h3 class='md3-headline-small'>{emoji} {type_name.capitalize()}s</h3>")
+            doc.append(
+                f'<div class="type-header type-{type_name}">'
+                f'{emoji} {type_name.capitalize()}s'
+                '</div>'
+            )
 
             for scope, commits_list in commits[type_name].items():
                 doc.append("<details open>")
                 doc.append(f"<summary>{self._style_scope_tag(scope)}</summary>")
-                doc.append("<ul class='md3-list'>")
+                doc.append("<ul class='commit-list'>")
 
                 for commit in commits_list:
                     doc.extend([
-                        "<li class='md3-list-item'>",
-                        "<div class='md3-surface'>",
-                        f"<div class='md3-body-large'>{commit['title']}</div>",
-                        "</div>",
+                        "<li class='commit-item'>",
+                        f"<div class='commit-title'>{commit['title']}</div>",
                         "</li>"
                     ])
 
@@ -523,6 +473,7 @@ class ReleaseChangelogStrategy(ReportStrategy):
                     "</details>"
                 ])
 
+        doc.append("</div>")
         return '\n'.join(doc)
 
 class ReportGeneratorFactory:
