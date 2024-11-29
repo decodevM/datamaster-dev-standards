@@ -346,18 +346,9 @@ class ReleaseChangelogStrategy(ReportStrategy):
                     entry = [
                         "<table>",
                         "<tr>",
-                        f"<td>{commit['title']}</td>",
+                        f"<td>- {commit['title']}</td>",
                         "</tr>"
                     ]
-                    
-                    if commit['refs']:
-                        entry.extend([
-                            "<tr>",
-                            "<td>",
-                            f"<sub>🔗 {', '.join(commit['refs'])}</sub>",
-                            "</td>",
-                            "</tr>"
-                        ])
                     
                     entry.extend([
                         "</table>",
