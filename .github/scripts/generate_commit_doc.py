@@ -882,16 +882,23 @@ import os
 import re
 from datetime import datetime
 import requests
-from typing import Dict, Optional, List, Protocol
+from typing import Dict, Optional, List
 import logging
+from abc import ABC, abstractmethod
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Step 1: Commit Fetcher
-class CommitFetcher:
-    def __init__(self, github_token: str, repo_owner: str, repo_name: str):
+# Interface for Commit Fetching
+class CommitFetcher(ABC):
+    @abstractmethod
+    def fetch_commits(self, branch="main") -> List[Dict]:
+        pass
+
+# GitHub implementation of CommitFetcher
+class GitHubCommitFetcher(CommitFetcher):
+    def __init__(self, github_token, repo_owner, repo_name):
         self.github_token = github_token
         self.repo_owner = repo_owner
         self.repo_name = repo_name
@@ -928,10 +935,17 @@ class CommitFetcher:
 
         return commits
 
-# Step 2: Commit Parser
-class CommitParser:
+# Interface for Commit Parsing
+class CommitParser(ABC):
+    @abstractmethod
+    def parse(self, message: str) -> Optional[Dict]:
+        pass
+
+# Concrete CommitParser implementation
+class BasicCommitParser(CommitParser):
+    TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
+
     def __init__(self):
-        self.TYPES = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"]
         self.commit_pattern = self._create_commit_pattern()
 
     def _create_commit_pattern(self):
@@ -940,8 +954,8 @@ class CommitParser:
             r"^(?P<type>" + type_regex + r")"
             r"\((?P<scope>[^)]+)\):\s*"
             r"(?P<title>[^\n]+)"
-            r"(?:(?P<body>[\s\S]*?))?"  # Non-greedy match for the body
-            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"  # Non-greedy match for the footer
+            r"(?:(?P<body>[\s\S]*?))?"
+            r"(?:\nRefs:\s*(?P<refs>#[A-Za-z0-9-]+(?:,\s*#[A-Za-z0-9-]+)*))?"
             r"$", re.DOTALL
         )
 
@@ -967,26 +981,101 @@ class CommitParser:
             "refs": [ref.strip() for ref in result.get("refs", "").split(",")] if result.get("refs") else []
         }
 
-# Step 3: Commit Categorizer
-class CommitCategorizer:
-    def __init__(self, parser: CommitParser):
-        self.parser = parser
+# Interface for Report Generation
+class CommitReportGenerator(ABC):
+    @abstractmethod
+    def generate_report(self, categorized_commits) -> str:
+        pass
 
-    def categorize_commits(self, commits: List[Dict]) -> Dict:
-        categorized = {t: {} for t in self.parser.TYPES}  # Group by type and scope
-        seen = set()  # Set to track unique commit identifiers
+# Concrete CommitReportGenerator for Markdown
+class MarkdownCommitReportGenerator(CommitReportGenerator):
+    emojis = {
+        "feat": "✨",
+        "fix": "🐛",
+        "docs": "📚",
+        "style": "💎",
+        "refactor": "♻️",
+        "perf": "⚡️",
+        "test": "🧪",
+        "chore": "🔧"
+    }
+
+    def generate_report(self, categorized_commits) -> str:
+        today = datetime.now().strftime("%d %B %Y")
+
+        doc = [
+            "# 📄 Commit Report",
+            f"*Generated on {today}*\n",
+            "## 🏢 Project Commits\n"
+        ]
+
+        for commit_type, scopes in categorized_commits.items():
+            if not scopes:
+                continue
+
+            emoji = self.emojis.get(commit_type, "📌")
+            doc.append(f"### {emoji} {commit_type.capitalize()}s\n")
+
+            for scope, commits in scopes.items():
+                doc.append(f"#### `{scope}`\n")
+
+                for commit in commits:
+                    # Title with author and date
+                    doc.append(f"- **{commit['title']}**")
+                    doc.append(f"  *{commit['author']} - {commit['date']}*")
+
+                    # Add body with indentation based on leading spaces
+                    if commit['body'] or commit['refs']:
+                        doc.append(f"\n\t**Description**\n")
+                        doc.append(f"\t```text")
+                        if commit['body']:
+                            for line in commit['body'].splitlines():
+                                doc.append(f"\t{line}")
+
+                        doc.append(f"\n")
+
+                        if commit['refs']:
+                            for ref in commit['refs']:
+                                doc.append(f"\t🔗 {ref.strip()}")
+                        doc.append(f"\t```")
+
+                doc.append("---")
+
+        return "\n".join(doc)
+
+# Factory class to create Commit Report Generators
+class CommitReportGeneratorFactory:
+    @staticmethod
+    def create_report_generator(format_type: str) -> CommitReportGenerator:
+        if format_type == "markdown":
+            return MarkdownCommitReportGenerator()
+        # Add other formats as needed (e.g., HTML)
+        raise ValueError(f"Unknown report format: {format_type}")
+
+# Commit Document Manager
+class CommitDocumentManager:
+    def __init__(self, commit_fetcher: CommitFetcher, commit_parser: CommitParser, report_generator: CommitReportGenerator):
+        self.commit_fetcher = commit_fetcher
+        self.commit_parser = commit_parser
+        self.report_generator = report_generator
+
+    def generate_document(self):
+        commits = self.commit_fetcher.fetch_commits()
+        categorized = self.categorize_commits(commits)
+        markdown_report = self.report_generator.generate_report(categorized)
+        self.save_document(markdown_report)
+
+    def categorize_commits(self, commits) -> Dict:
+        categorized = {t: {} for t in self.commit_parser.TYPES}
+        seen = set()
 
         for commit in commits:
             message = commit["commit"]["message"]
             author = commit["commit"]["author"]["name"]
-            date = datetime.strptime(
-                commit["commit"]["author"]["date"],
-                "%Y-%m-%dT%H:%M:%SZ"
-            ).strftime("%d %B %Y %H:%M")
+            date = datetime.strptime(commit["commit"]["author"]["date"], "%Y-%m-%dT%H:%M:%SZ").strftime("%d %B %Y %H:%M")
 
-            parsed = self.parser.parse(message)
+            parsed = self.commit_parser.parse(message)
             if parsed:
-                # Create a unique identifier for the commit
                 commit_id = (
                     parsed["type"],
                     parsed["scope"],
@@ -995,106 +1084,49 @@ class CommitCategorizer:
                     tuple(parsed["refs"])
                 )
 
-                if commit_id in seen:  # Skip duplicates
-                    continue
+            if commit_id not in seen:
+                seen.add(commit_id)
 
-                seen.add(commit_id)  # Mark this commit as seen
+                if parsed["scope"] not in categorized[parsed["type"]]:
+                    categorized[parsed["type"]][parsed["scope"]] = []
 
-                commit_info = {
-                    **parsed,
+                categorized[parsed["type"]][parsed["scope"]].append({
+                    "title": parsed["title"],
+                    "body": parsed["body"] or "",
+                    "author": author,
                     "date": date,
-                    "author": author
-                }
-
-                # Add to categorized commits by type and scope
-                scope_group = categorized[parsed["type"]].setdefault(parsed["scope"], [])
-                scope_group.append(commit_info)
+                    "refs": parsed["refs"]
+                })
 
         return categorized
 
-# Step 4: Output Format (Strategy Pattern)
-class CommitOutputFormatter(Protocol):
-    def format_commit(self, commit: Dict) -> str:
-        pass
+    def save_document(self, document: str):
+        file_name = f"commit_report_{datetime.now().strftime('%Y-%m-%d')}.md"
+        file_path = os.path.join(os.getcwd(), file_name)
 
-class MarkdownCommitFormatter(CommitOutputFormatter):
-    def format_commit(self, commit: Dict) -> str:
-        emoji = {
-            "feat": "✨",
-            "fix": "🐛",
-            "docs": "📚",
-            "style": "💎",
-            "refactor": "♻️",
-            "perf": "⚡️",
-            "test": "🧪",
-            "chore": "🔧"
-        }
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(document)
 
-        output = [f"- **{commit['title']}**", f"  *{commit['author']} - {commit['date']}*"]
-        
-        # Add body and refs
-        if commit['body']:
-            output.append(f"\n\t**Description**\n\t```text")
-            for line in commit['body'].splitlines():
-                output.append(f"\t{line}")
-            output.append(f"\t```")
+        logger.info(f"Document saved: {file_path}")
 
-        if commit['refs']:
-            for ref in commit['refs']:
-                output.append(f"\t🔗 {ref}")
 
-        return "\n".join(output)
-
-# Step 5: Document Saver
-class DocumentSaver:
-    def __init__(self, filename="generated_docs/commit_document.md"):
-        self.filename = filename
-
-    def save(self, content: str):
-        os.makedirs(os.path.dirname(self.filename), exist_ok=True)
-        with open(self.filename, 'w', encoding='utf-8') as f:
-            f.write(content)
-        logger.info(f"Document saved to: {self.filename}")
-
-# Step 6: Main Execution
-class CommitDocumentGenerator:
-    def __init__(self, fetcher: CommitFetcher, categorizer: CommitCategorizer, formatter: CommitOutputFormatter, saver: DocumentSaver):
-        self.fetcher = fetcher
-        self.categorizer = categorizer
-        self.formatter = formatter
-        self.saver = saver
-
-    def generate_commit_report(self):
-        commits = self.fetcher.fetch_commits()
-        if not commits:
-            logger.error("No commits found")
-            return
-
-        categorized = self.categorizer.categorize_commits(commits)
-        formatted_commits = []
-
-        for commit_type, scopes in categorized.items():
-            for scope, commits in scopes.items():
-                for commit in commits:
-                    formatted_commits.append(self.formatter.format_commit(commit))
-
-        report_content = "\n\n".join(formatted_commits)
-        self.saver.save(report_content)
-
-# Step 7: Main
+# Client code
 def main():
-    github_token = os.getenv('GITHUB_TOKEN')
-    repo_owner = os.getenv('REPO_OWNER')
-    repo_name = os.getenv('REPO_NAME')
+    # Setup GitHub credentials and repository details
+    github_token = "your_github_token_here"
+    repo_owner = "your_repo_owner_here"
+    repo_name = "your_repo_name_here"
 
-    fetcher = CommitFetcher(github_token, repo_owner, repo_name)
-    parser = CommitParser()
-    categorizer = CommitCategorizer(parser)
-    formatter = MarkdownCommitFormatter()
-    saver = DocumentSaver()
+    # Create instances of the fetcher, parser, and report generator
+    commit_fetcher = GitHubCommitFetcher(github_token, repo_owner, repo_name)
+    commit_parser = BasicCommitParser()
+    report_generator = CommitReportGeneratorFactory.create_report_generator("markdown")
 
-    generator = CommitDocumentGenerator(fetcher, categorizer, formatter, saver)
-    generator.generate_commit_report()
+    # Create Commit Document Manager
+    document_manager = CommitDocumentManager(commit_fetcher, commit_parser, report_generator)
+
+    # Generate and save the report
+    document_manager.generate_document()
 
 if __name__ == "__main__":
     main()
