@@ -318,27 +318,28 @@ class ChangelogGenerator:
         for commit in commits:
             message = commit["commit"]["message"]
             parsed = self.parser.parse(message)
-            if parsed:
+
+            if parsed:  # Only proceed if parsing was successful
+                # Extract the footer if available
+                footer = parsed.get("footer", "").strip() if parsed.get("footer") else ""
+
                 # Create a unique identifier for each commit
                 unique_identifier = f"{parsed['type']}::{parsed['scope']}::{parsed['title']}"
-                
+
                 if unique_identifier in seen_commits:
                     continue  # Skip duplicate commits
-                
+
                 seen_commits.add(unique_identifier)  # Mark as seen
-                
+
                 commit_type = parsed["type"]
                 scope = parsed["scope"]
                 title = parsed["title"]
-                body = parsed.get("body", "").strip()
-                footer = parsed.get("footer", "").strip()
 
                 if scope not in categorized[commit_type]:
                     categorized[commit_type][scope] = []
                 categorized[commit_type][scope].append({
                     "title": title,
-                    "body": body,
-                    "footer": footer,
+                    "footer": footer  # Add footer to the categorized commit
                 })
 
         return categorized
