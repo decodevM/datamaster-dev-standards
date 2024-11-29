@@ -107,13 +107,6 @@ SHORT_DESC_TIP_MSG="💡 Tip: Consider shortening your description to fit within
 TYPE_REGEX=$(IFS=\|; echo "${TYPES[*]}")
 SCOPE_REGEX=$(IFS=\|; echo "${SCOPES[*]}")
 
-
-# Define regex for each part of the commit message
-# SHORT_DESC_REGEX="[A-Z][^\n]{1,${SHORT_DESC_LENGTH}}"         # Starts with an uppercase letter, max ${SHORT_DESC_LENGTH} characters
-# MULTILINE_DESC_REGEX="(\n.+)*"                                  # Optional multiline description
-# REFS_REGEX="Refs: #(CU-)*[a-zA-Z0-9]+"                          # Refs line with optional "CU-" prefix and alphanumeric task ID
-
-
 SHORT_DESC_REGEX=".*"  # Matches the short description after the colon
 MULTILINE_DESC_REGEX="[\s\S]+"  # Matches multiline description if any
 REFS_REGEX="Refs: #[A-Za-z0-9-]+"  # Refs line regex
