@@ -821,16 +821,19 @@ class CommitDocument:
                 doc.append(f"#### `{scope}`\n")
 
                 for commit in commits:
+                    # Title with author and date
                     doc.append(f"- **{commit['title']}**")
                     doc.append(f"  *{commit['author']} - {commit['date']}*")
                     
-                    if commit['body']:  # Include body if available
-                        doc.append(f"  - {commit['body']}")
+                    # Add body with indentation
+                    if commit['body']:
+                        doc.append(f"\t- {commit['body']}")  # Use a tab for indentation
 
-                    if commit['refs']:  # Include refs if available
-                        doc.append(f"  🔗 Refs: {', '.join(commit['refs'])}")
+                    # Add refs with indentation
+                    if commit['refs']:
+                        doc.append(f"\t🔗 Refs: {', '.join(commit['refs'])}")  # Use a tab for indentation
 
-                doc.append("---")
+                doc.append("---")  # Separator for each scope
 
         return "\n".join(doc)
 
