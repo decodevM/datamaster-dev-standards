@@ -826,7 +826,7 @@ class CommitDocument:
                     doc.append(f"  *{commit['author']} - {commit['date']}*")
 
                     # Add body with indentation based on leading spaces
-                    if commit['body']:
+                    if commit['body'] or commit['refs']:
                         # print('body: ' + commit['body'])
                         doc.append(f"\n\t**Description**\n")  # Add a description heading
                         doc.append(f"\t```text")              # Open the code block
