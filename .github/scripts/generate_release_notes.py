@@ -51,43 +51,6 @@ def get_commits_between_refs(latest_ref, previous_ref):
     comparison = repo.compare(previous_sha, latest_sha)
     return comparison.commits
 
-def generate_release_notes(latest_ref, previous_ref, commits):
-    """Generate formatted release notes"""
-    today = datetime.now().strftime("%Y-%m-%d")
-    ref_type = "tag" if hasattr(latest_ref, "name") else "commit"
-    
-    notes = [
-        f"# Release Notes ({today})",
-        f"\nChanges between {'tags' if ref_type == 'tag' else 'commits'}:",
-        f"- Latest: {latest_ref.name if ref_type == 'tag' else latest_ref.sha[:7]}",
-        f"- Previous: {previous_ref.name if ref_type == 'tag' else previous_ref.sha[:7]}\n",
-        "\n## Changes\n"
-    ]
-    
-    # Group commits by type
-    grouped_commits = {}
-    for commit in commits:
-        message = commit.commit.message.split('\n')[0]
-        
-        # Try to parse conventional commits
-        if ':' in message:
-            type = message.split(':')[0].split('(')[0].strip()
-            if type not in grouped_commits:
-                grouped_commits[type] = []
-            grouped_commits[type].append(message)
-        else:
-            if 'other' not in grouped_commits:
-                grouped_commits['other'] = []
-            grouped_commits['other'].append(message)
-    
-    # Generate formatted notes
-    for type, messages in sorted(grouped_commits.items()):
-        notes.append(f"### {type.capitalize()}")
-        for msg in messages:
-            notes.append(f"- {msg}")
-        notes.append("")
-    
-    return '\n'.join(notes)
 
 def ensure_output_directory():
     """Create output directory if it doesn't exist"""
