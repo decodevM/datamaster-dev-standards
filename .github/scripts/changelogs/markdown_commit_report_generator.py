@@ -6,9 +6,14 @@ from datetime import datetime
 
 class MarkdownCommitReportGenerator(BaseReportStrategy):
     def _generate_commit_item(self, commit: Dict) -> str:
+        
         """Generate markup for a single commit"""
+        
+        message = f"{commit['title']}\n{commit['body']}" if commit['body'] else commit['title']
+        
         elements = [
             "<li class='commit-item'>",
+            self.generate_copy_button(message),
             f"<div class='commit-title'>{commit['title']}</div>",
             f"<div class='commit-meta'>👤 {commit['author']} • 📅 {commit['date']}</div>"
         ]
