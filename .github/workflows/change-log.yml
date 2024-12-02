@@ -34,9 +34,11 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           python .github/scripts/generate_release_notes.py
-
+          ls -la generated_docs/  # Debug output
+  
       - name: Save Release Notes
         uses: actions/upload-artifact@v4
         with:
           name: release-notes
-          path: generated_docs/*
+          path: ${{ github.workspace }}/generated_docs/
+          if-no-files-found: error  # Fail if no files found

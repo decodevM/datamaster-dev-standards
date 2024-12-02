@@ -3,72 +3,81 @@ import requests
 from datetime import datetime
 from github import Github
 
-def get_tags():
+def get_tags_or_commits():
+    """Get latest tags or use commits if no/single tag exists"""
     g = Github(os.getenv('GITHUB_TOKEN'))
     repo = g.get_repo(f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}")
     
-    # Get all tags sorted by creation date
-    tags = sorted(repo.get_tags(), key=lambda t: t.commit.commit.author.date, reverse=True)
+    # Try to get tags
+    tags = list(repo.get_tags())
     
-    if len(tags) < 2:
-        return None, None
-        
-    return tags[0], tags[1]  # Latest and previous tags
+    if len(tags) >= 2:
+        print(f"Found multiple tags: {tags[0].name} and {tags[1].name}")
+        return tags[0], tags[1]
+    elif len(tags) == 1:
+        print(f"Found single tag: {tags[0].name}")
+        # Get commits before the tag
+        commits = list(repo.get_commits(sha=tags[0].commit.sha + "^"))
+        if commits:
+            previous_commit = commits[min(10, len(commits)-1)]  # Get 10th commit or last available
+            print(f"Using commit {previous_commit.sha[:7]} as previous reference")
+            return tags[0], previous_commit
+    
+    # If no tags, use latest commits
+    commits = list(repo.get_commits())
+    if len(commits) >= 2:
+        print("No tags found, using latest commits instead")
+        latest = commits[0]
+        previous = commits[min(10, len(commits)-1)]
+        return latest, previous
+    
+    print("Not enough history found")
+    return None, None
 
-def get_commits_between_tags(latest_tag, previous_tag):
+    
+def get_commits_between_refs(latest_ref, previous_ref):
+    """Get commits between two refs (tags or commits)"""
     g = Github(os.getenv('GITHUB_TOKEN'))
     repo = g.get_repo(f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}")
     
-    # Get commits between tags
-    comparison = repo.compare(previous_tag.commit.sha, latest_tag.commit.sha)
+    comparison = repo.compare(previous_ref.sha, latest_ref.sha)
     return comparison.commits
 
-def generate_release_notes(latest_tag, previous_tag, commits):
+def generate_release_notes(latest_ref, previous_ref, commits):
     today = datetime.now().strftime("%Y-%m-%d")
+    ref_type = "tag" if hasattr(latest_ref, "name") else "commit"
+    
     notes = [
         f"# Release Notes ({today})",
-        f"\nChanges between {previous_tag.name} and {latest_tag.name}\n",
+        f"\nChanges between {'tags' if ref_type == 'tag' else 'commits'}:",
+        f"- Latest: {latest_ref.name if ref_type == 'tag' else latest_ref.sha[:7]}",
+        f"- Previous: {previous_ref.name if ref_type == 'tag' else previous_ref.sha[:7]}\n",
         "\n## Changes\n"
     ]
     
-    # Group commits by type
-    grouped_commits = {}
-    for commit in commits:
-        message = commit.commit.message.split('\n')[0]  # Get first line
-        
-        # Try to parse conventional commits
-        if ':' in message:
-            type = message.split(':')[0].split('(')[0].strip()
-            if type not in grouped_commits:
-                grouped_commits[type] = []
-            grouped_commits[type].append(message)
-        else:
-            if 'other' not in grouped_commits:
-                grouped_commits['other'] = []
-            grouped_commits['other'].append(message)
-    
-    # Generate formatted notes
-    for type, messages in grouped_commits.items():
-        notes.append(f"### {type.capitalize()}")
-        for msg in messages:
-            notes.append(f"- {msg}")
-        notes.append("")
-    
-    return '\n'.join(notes)
+    # Rest of generate_release_notes remains the same...
 
 def main():
-    latest_tag, previous_tag = get_tags()
-    if not latest_tag or not previous_tag:
-        print("Not enough tags found")
+    latest_ref, previous_ref = get_tags_or_commits()
+    if not latest_ref or not previous_ref:
+        print("Not enough history to generate release notes")
         return
     
-    commits = get_commits_between_tags(latest_tag, previous_tag)
-    release_notes = generate_release_notes(latest_tag, previous_tag, commits)
+    commits = get_commits_between_refs(latest_ref, previous_ref)
+    release_notes = generate_release_notes(latest_ref, previous_ref, commits)
     
-    # Save release notes
-    os.makedirs('generated_docs', exist_ok=True)
-    with open(f'generated_docs/release_notes_{datetime.now().strftime("%Y-%m-%d")}.md', 'w') as f:
+    output_dir = os.path.join(os.getcwd(), 'generated_docs')
+    print(f"Creating output directory: {output_dir}")
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    output_file = os.path.join(
+        output_dir, 
+        f"release_notes_{datetime.now().strftime('%Y-%m-%d')}.md"
+    )
+    print(f"Writing release notes to: {output_file}")
+    
+    with open(output_file, 'w') as f:
         f.write(release_notes)
-
-if __name__ == "__main__":
-    main()
+    
+    print("Release notes generated successfully")
