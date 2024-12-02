@@ -237,6 +237,30 @@ class StyleConfig:
             background: #10b981;
             color: white;
         }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--color-border);
+            margin: 2rem 0;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+        }
+
+        .empty-state p {
+            color: var(--color-text-secondary);
+        }
     """
 
     # Add helper method for tag badges
