@@ -1,106 +1,106 @@
-name: Auto Release on Push to Main
+# name: Auto Release on Push to Main
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
+# jobs:
+#   release:
+#     name: Create Release
+#     runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the repository
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+#     steps:
+#       # Checkout the repository
+#       - name: Checkout Repository
+#         uses: actions/checkout@v3
 
-      # Set up GitHub CLI
-      - name: Set Up GitHub CLI
-        run: |
-          sudo apt update
-          sudo apt install -y gh
+#       # Set up GitHub CLI
+#       - name: Set Up GitHub CLI
+#         run: |
+#           sudo apt update
+#           sudo apt install -y gh
 
-      # Create or Validate Tag
-      - name: Create or Validate Tag
-        id: create_tag
-        run: |
-          # Fetch all tags
-          git fetch --tags
+#       # Create or Validate Tag
+#       - name: Create or Validate Tag
+#         id: create_tag
+#         run: |
+#           # Fetch all tags
+#           git fetch --tags
 
-          # Get the latest tag or default to v0.0.0 if no tags exist
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
+#           # Get the latest tag or default to v0.0.0 if no tags exist
+#           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+#           echo "Latest tag: $LATEST_TAG"
 
-          # Parse the version number
-          VERSION_REGEX="^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$"
-          if [[ "$LATEST_TAG" =~ $VERSION_REGEX ]]; then
-            MAJOR=${BASH_REMATCH[1]}
-            MINOR=${BASH_REMATCH[2]}
-            PATCH=${BASH_REMATCH[3]}
-          else
-            MAJOR=0
-            MINOR=0
-            PATCH=0
-          fi
+#           # Parse the version number
+#           VERSION_REGEX="^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$"
+#           if [[ "$LATEST_TAG" =~ $VERSION_REGEX ]]; then
+#             MAJOR=${BASH_REMATCH[1]}
+#             MINOR=${BASH_REMATCH[2]}
+#             PATCH=${BASH_REMATCH[3]}
+#           else
+#             MAJOR=0
+#             MINOR=0
+#             PATCH=0
+#           fi
 
-          # Increment the patch version
-          PATCH=$((PATCH + 1))
+#           # Increment the patch version
+#           PATCH=$((PATCH + 1))
 
-          # Create the new tag
-          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
-          echo "New tag: $NEW_TAG"
+#           # Create the new tag
+#           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+#           echo "New tag: $NEW_TAG"
 
-          # Check if the tag already exists
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
-            echo "Tag $NEW_TAG already exists. Skipping creation."
-            echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-            exit 0
-          fi
+#           # Check if the tag already exists
+#           if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+#             echo "Tag $NEW_TAG already exists. Skipping creation."
+#             echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+#             exit 0
+#           fi
 
-          # Push the new tag to the repository
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
+#           # Push the new tag to the repository
+#           git config user.name "GitHub Actions"
+#           git config user.email "actions@github.com"
+#           git tag $NEW_TAG
+#           git push origin $NEW_TAG
 
-          # Output the new tag
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+#           # Output the new tag
+#           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
-      # Generate changelog
-      - name: Generate Changelog
-        id: changelog
-        run: |
-          # Fetch all tags
-          git fetch --tags
+#       # Generate changelog
+#       - name: Generate Changelog
+#         id: changelog
+#         run: |
+#           # Fetch all tags
+#           git fetch --tags
 
-          # Get the previous tag
-          PREVIOUS_TAG=$(git describe --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+#           # Get the previous tag
+#           PREVIOUS_TAG=$(git describe --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
 
-          # Generate the changelog
-          if [[ -n "$PREVIOUS_TAG" ]]; then
-            echo "Comparing $PREVIOUS_TAG...$NEW_TAG"
-            CHANGELOG=$(git log $PREVIOUS_TAG..$NEW_TAG --pretty=format:"- %s by @%an")
-          else
-            echo "No previous tag found. Using all commits for changelog."
-            CHANGELOG=$(git log --pretty=format:"- %s by @%an")
-          fi
+#           # Generate the changelog
+#           if [[ -n "$PREVIOUS_TAG" ]]; then
+#             echo "Comparing $PREVIOUS_TAG...$NEW_TAG"
+#             CHANGELOG=$(git log $PREVIOUS_TAG..$NEW_TAG --pretty=format:"- %s by @%an")
+#           else
+#             echo "No previous tag found. Using all commits for changelog."
+#             CHANGELOG=$(git log --pretty=format:"- %s by @%an")
+#           fi
 
-          # Clean the changelog and store it in a new file
-          CHANGELOG=$(echo "$CHANGELOG" | sed 's/\r//' | sed 's/^ *//')  # Clean up line breaks and spaces
-          echo -e "What's Changed\n\n$CHANGELOG" > changelog.txt
-          cat changelog.txt
-          echo "CHANGELOG=$(cat changelog.txt)" >> $GITHUB_ENV
+#           # Clean the changelog and store it in a new file
+#           CHANGELOG=$(echo "$CHANGELOG" | sed 's/\r//' | sed 's/^ *//')  # Clean up line breaks and spaces
+#           echo -e "What's Changed\n\n$CHANGELOG" > changelog.txt
+#           cat changelog.txt
+#           echo "CHANGELOG=$(cat changelog.txt)" >> $GITHUB_ENV
 
-      # Create a release
-      - name: Create Release
-        if: steps.create_tag.outcome == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "$NEW_TAG" \
-            --title "$NEW_TAG" \
-            --notes "$(cat changelog.txt)"
+#       # Create a release
+#       - name: Create Release
+#         if: steps.create_tag.outcome == 'success'
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           gh release create "$NEW_TAG" \
+#             --title "$NEW_TAG" \
+#             --notes "$(cat changelog.txt)"
