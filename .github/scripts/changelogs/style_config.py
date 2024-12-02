@@ -175,4 +175,112 @@ class StyleConfig:
         summary::-webkit-details-marker {
             display: none;
         }
+
+         /* Add clipboard.js script */
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                new ClipboardJS('.copy-button');
+            });
+        </script>
+
+        /* Add tag styles */
+        .tags-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tag-badge {
+            background: var(--color-elevated);
+            color: var(--color-text);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-base);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid var(--color-border);
+        }
+
+        /* Copy button styles */
+        .commit-item {
+            position: relative;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--color-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .commit-item:hover .copy-button {
+            opacity: 1;
+        }
+
+        .copy-button:hover {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border-color: var(--color-text-secondary);
+        }
+
+        /* Success feedback */
+        .copy-button.copied {
+            background: #10b981;
+            color: white;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--color-border);
+            margin: 2rem 0;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+        }
+
+        .empty-state p {
+            color: var(--color-text-secondary);
+        }
     """
+
+    # Add helper method for tag badges
+    @staticmethod
+    def generate_tag_badges(latest_tag: str, previous_tag: str) -> str:
+        return f"""
+        <div class="tags-container">
+            <span class="tag-badge">Latest: {latest_tag}</span>
+            <span class="tag-badge">Previous: {previous_tag}</span>
+        </div>
+        """
+
+    # Add helper method for copy button
+    @staticmethod
+    def generate_copy_button(content: str) -> str:
+        return f"""
+        <button class="copy-button" 
+                data-clipboard-text="{content}"
+                onclick="this.classList.add('copied'); 
+                         setTimeout(() => this.classList.remove('copied'), 1000)">
+            Copy
+        </button>
+        """

@@ -1,6 +1,6 @@
 from base_interfaces import ReportStrategy
 from style_config import StyleConfig
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 class BaseReportStrategy(ReportStrategy, StyleConfig):
     """Base class combining ReportStrategy with StyleConfig"""
@@ -12,7 +12,13 @@ class BaseReportStrategy(ReportStrategy, StyleConfig):
         ])
         return f"<style>{self.BASE_STYLES}\n{type_colors}</style>"
 
-    def _generate_header(self, title: str, subtitle: str) -> List[str]:
+    def _generate_header(
+            self, 
+            title: str, 
+            subtitle: str,        
+            current_tag: Optional[str] = None,
+            previous_tag: Optional[str] = None
+        ) -> List[str]:
         """Generate common header markup"""
         return [
             self._generate_style_tag(),
@@ -20,6 +26,7 @@ class BaseReportStrategy(ReportStrategy, StyleConfig):
             "<header class='header'>",
             f"<h1>{title}</h1>",
             f"<p>{subtitle}</p>",
+            f"<p>{previous_tag} -> {current_tag}</p>",
             "</header>"
         ]
 

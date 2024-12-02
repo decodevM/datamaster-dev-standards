@@ -14,5 +14,11 @@ class CommitParser(ABC):
 
 class ReportStrategy(ABC):
     @abstractmethod
-    def generate(self, commits: Dict) -> str:
+    def generate(
+        self, 
+        commits: Dict,
+        current_tag: Optional[str] = None,
+        previous_tag: Optional[str] = None
+    ) -> str:
+        """Generate report with optional tag information"""
         pass
