@@ -1,44 +1,44 @@
-name: Generate Release Notes
-on:
-  push:
-    branches:
-      - '*'
+# name: Generate Release Notes
+# on:
+#   push:
+#     branches:
+#       - '*'
 
-jobs:
-  release-notes:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: read
+# jobs:
+#   release-notes:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
+#       pull-requests: read
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.x'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests PyGithub
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install requests PyGithub
 
-      - name: Generate Release Notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          python .github/scripts/generate_release_notes.py
-          ls -la generated_docs/  # Debug output
+#       - name: Generate Release Notes
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           REPO_OWNER: ${{ github.repository_owner }}
+#           REPO_NAME: ${{ github.event.repository.name }}
+#         run: |
+#           python .github/scripts/generate_release_notes.py
+#           ls -la generated_docs/  # Debug output
   
-      - name: Save Release Notes
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: ${{ github.workspace }}/generated_docs/
-          if-no-files-found: error  # Fail if no files found
+#       - name: Save Release Notes
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: release-notes
+#           path: ${{ github.workspace }}/generated_docs/
+#           if-no-files-found: error  # Fail if no files found
