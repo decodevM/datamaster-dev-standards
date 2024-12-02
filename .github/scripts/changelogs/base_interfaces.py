@@ -20,5 +20,4 @@ class ReportStrategy(ABC):
         current_tag: Optional[str] = None,
         previous_tag: Optional[str] = None
     ) -> str:
-        """Generate report with optional tag information"""
         pass
