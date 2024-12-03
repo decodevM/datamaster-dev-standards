@@ -21,13 +21,9 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         
         """Generate markup for a single commit"""
 
-        
-        
-        message = f"{commit['title']}\n{commit['body']}" if commit['body'] else commit['title']
-        
+
         elements = [
             "<li class='commit-item'>",
-            self.generate_copy_button(message),
             f"<div class='commit-title'>{commit['title']}</div>",
             f"<div class='commit-meta'>👤 {commit['author']} • 📅 {commit['date']}</div>"
         ]
@@ -46,11 +42,11 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         return '\n'.join(elements)
 
     def generate(
-            self, 
-            commits: Dict,        
+            self,
+            commits: Dict,
             current_tag: Optional[str] = None,
             previous_tag: Optional[str] = None
-        ) -> str:
+    ) -> str:
         today = datetime.now().strftime("%d %B %Y")
         repo_info = f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
 
@@ -61,9 +57,13 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
             previous_tag=previous_tag
         )
 
+        # Display the tags in the document
+        if current_tag and previous_tag:
+            doc.append(f"<div class='tags-info'>Current Tag: {current_tag}, Previous Tag: {previous_tag}</div>")
+
         # Check if there are any commits
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
-        
+
         if not has_commits:
             doc.append(self._generate_empty_state())
         else:
