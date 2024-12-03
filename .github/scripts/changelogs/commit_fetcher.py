@@ -61,6 +61,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+from git import Repo, Commit
+
 class GitHubCommitFetcher(CommitFetcher):
     def __init__(self, github_token: str, repo_owner: str, repo_name: str):
         self.github_token = github_token
@@ -71,8 +73,9 @@ class GitHubCommitFetcher(CommitFetcher):
             "Authorization": f"token {github_token}",
             "Accept": "application/vnd.github.v3+json"
         }
+        self.repo = Repo('.')
 
-    def get_tags(self) -> Tuple[Optional[Tag], Optional[Tag]]:
+    def get_tags(self) -> Tuple[Optional[str], Optional[str]]:
         """Get latest and previous tags if available"""
         try:
             response = requests.get(
@@ -84,10 +87,10 @@ class GitHubCommitFetcher(CommitFetcher):
 
             if len(tags) >= 2:
                 logger.info(f"Found tags: {tags[0]['name']} and {tags[1]['name']}")
-                return Tag(tags[0]), Tag(tags[1])
+                return tags[0]['name'], tags[1]['name']
             elif len(tags) == 1:
                 logger.info(f"Found single tag: {tags[0]['name']}")
-                return Tag(tags[0]), None
+                return tags[0]['name'], None
             else:
                 logger.info("No tags found")
                 return None, None
@@ -96,6 +99,10 @@ class GitHubCommitFetcher(CommitFetcher):
             logger.error(f"Error fetching tags: {e}")
             return None, None
 
+    def get_commit_from_tag(self, tag: str) -> Commit:
+        """Get commit object from tag name"""
+        return self.repo.commit(tag)
+
     def get_commits_between_refs(
         self,
         base_ref: Union[Tag, Commit],
@@ -103,11 +110,11 @@ class GitHubCommitFetcher(CommitFetcher):
     ) -> List[Dict]:
         """Get commits between two refs"""
         try:
-            base_sha = base_ref.commit.sha if isinstance(base_ref, Tag) else base_ref.sha
-            head_sha = head_ref.commit.sha if isinstance(head_ref, Tag) else head_ref.sha
+            base_sha = base_ref.commit.sha if isinstance(base_ref, Tag) else base_ref.hexsha
+            head_sha = head_ref.commit.sha if isinstance(head_ref, Tag) else head_ref.hexsha
 
             logger.info(f"Comparing {base_sha[:7]} to {head_sha[:7]}")
-            
+
             response = requests.get(
                 f"{self.base_url}/compare/{base_sha}...{head_sha}",
                 headers=self.headers
@@ -120,28 +127,15 @@ class GitHubCommitFetcher(CommitFetcher):
             return []
 
     def fetch_commits(self, branch="main") -> List[Dict]:
-        """Fetch all commits from repository"""
-        commits = []
-        page = 1
+        """Fetch commits between the latest two tags or all commits if only one tag exists"""
+        latest_tag, previous_tag = self.get_tags()
 
-        while True:
-            try:
-                response = requests.get(
-                    f"{self.base_url}/commits",
-                    headers=self.headers,
-                    params={"sha": branch, "page": page}
-                )
-                response.raise_for_status()
-                data = response.json()
-                
-                if not data:
-                    break
-                    
-                commits.extend(data)
-                page += 1
-                
-            except Exception as e:
-                logger.error(f"Error fetching commits: {e}")
-                break
-
-        return commits
+        if latest_tag and previous_tag:
+            latest_commit = self.get_commit_from_tag(latest_tag)
+            previous_commit = self.get_commit_from_tag(previous_tag)
+            return self.get_commits_between_refs(previous_commit, latest_commit)
+        elif latest_tag:
+            latest_commit = self.get_commit_from_tag(latest_tag)
+            return self.get_commits_between_refs(latest_commit, Commit(sha=""))
+        else:
+            return self.get_commits_between_refs(Commit(sha=""), Commit(sha=""))
