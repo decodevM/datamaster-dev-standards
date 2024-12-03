@@ -9,7 +9,6 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
     def _generate_empty_state(self) -> str:
         """Generate markup for when there are no commits"""
         return """
-        <div>
             <div class="empty-state">
                 <div class="empty-icon">🔍</div>
                 <h3>No Changes Found</h3>
@@ -62,6 +61,7 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
 
         if not has_commits:
+            doc.append("<div>")
             doc.append(self._generate_empty_state())
         else:
             for type_name in self.PRIORITY_ORDER:
