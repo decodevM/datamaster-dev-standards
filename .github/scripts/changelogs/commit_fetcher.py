@@ -48,10 +48,10 @@
 #         return commits
 
 
-
 import requests
 from base_interfaces import CommitFetcher
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Union
+from github import Tag, Commit
 import logging
 
 logging.basicConfig(
@@ -71,52 +71,55 @@ class GitHubCommitFetcher(CommitFetcher):
             "Accept": "application/vnd.github.v3+json"
         }
 
-    def get_tags(self) -> List[Dict]:
-        """Fetch all tags sorted by creation date"""
+    def get_tags(self) -> Tuple[Optional[Tag], Optional[Tag]]:
+        """Get latest and previous tags if available"""
         try:
             response = requests.get(
                 f"{self.base_url}/tags",
                 headers=self.headers
             )
             response.raise_for_status()
-            return response.json()
+            tags = response.json()
+
+            if len(tags) >= 2:
+                logger.info(f"Found tags: {tags[0]['name']} and {tags[1]['name']}")
+                return Tag(tags[0]), Tag(tags[1])
+            elif len(tags) == 1:
+                logger.info(f"Found single tag: {tags[0]['name']}")
+                return Tag(tags[0]), None
+            else:
+                logger.info("No tags found")
+                return None, None
+
         except Exception as e:
             logger.error(f"Error fetching tags: {e}")
-            return []
+            return None, None
 
-    def get_commits_between_tags(self, base_sha: str, head_sha: str) -> List[Dict]:
-        """Get commits between two tags"""
+    def get_commits_between_refs(
+        self,
+        base_ref: Union[Tag, Commit],
+        head_ref: Union[Tag, Commit]
+    ) -> List[Dict]:
+        """Get commits between two refs"""
         try:
+            base_sha = base_ref.commit.sha if isinstance(base_ref, Tag) else base_ref.sha
+            head_sha = head_ref.commit.sha if isinstance(head_ref, Tag) else head_ref.sha
+
+            logger.info(f"Comparing {base_sha[:7]} to {head_sha[:7]}")
+            
             response = requests.get(
                 f"{self.base_url}/compare/{base_sha}...{head_sha}",
                 headers=self.headers
             )
             response.raise_for_status()
             return response.json().get('commits', [])
+
         except Exception as e:
-            logger.error(f"Error fetching commits between tags: {e}")
+            logger.error(f"Error fetching commits between refs: {e}")
             return []
 
     def fetch_commits(self, branch="main") -> List[Dict]:
-        """Fetch commits based on tags"""
-        tags = self.get_tags()
-        
-        if not tags:
-            logger.info("No tags found, fetching all commits")
-            return self._fetch_all_commits(branch)
-        
-        if len(tags) == 1:
-            logger.info(f"Found single tag: {tags[0]['name']}")
-            return self._fetch_all_commits(branch)
-        
-        logger.info(f"Found tags: {tags[0]['name']} and {tags[1]['name']}")
-        return self.get_commits_between_tags(
-            tags[1]['commit']['sha'],  # Previous tag
-            tags[0]['commit']['sha']   # Latest tag
-        )
-
-    def _fetch_all_commits(self, branch: str) -> List[Dict]:
-        """Fetch all commits for a branch"""
+        """Fetch all commits from repository"""
         commits = []
         page = 1
 
@@ -129,10 +132,13 @@ class GitHubCommitFetcher(CommitFetcher):
                 )
                 response.raise_for_status()
                 data = response.json()
+                
                 if not data:
                     break
+                    
                 commits.extend(data)
                 page += 1
+                
             except Exception as e:
                 logger.error(f"Error fetching commits: {e}")
                 break
