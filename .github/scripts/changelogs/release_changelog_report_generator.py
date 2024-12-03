@@ -17,6 +17,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         """
 
 
+
     def _generate_commit_item(self, commit: Dict) -> str:
         """Generate markup for a release commit item"""
 
