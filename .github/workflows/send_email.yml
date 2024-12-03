@@ -17,7 +17,7 @@ jobs:
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
-          connection_url: ${{ secrets.MAIL_CONNECTION }}
+        #   connection_url: ${{ secrets.MAIL_CONNECTION }}
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
