@@ -53,12 +53,6 @@ jobs:
           name: commit-logs
           path: generated_docs/*
 
-  send_email:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
-
       # Step 2: Download the artifact from the previous workflow
       - name: Download commit logs artifact
         uses: actions/download-artifact@v4
@@ -77,8 +71,8 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-        #   cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/email_template.html
           attachments: ./generated_docs/*
-
+          
