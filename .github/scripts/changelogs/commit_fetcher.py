@@ -87,6 +87,7 @@ class GitHubCommitFetcher(CommitFetcher):
 
             if len(tags) >= 2:
                 logger.info(f"Found tags: {tags[0]['name']} and {tags[1]['name']}")
+                print(tags[0], tags[1])
                 return tags[0]['name'], tags[1]['name']
             elif len(tags) == 1:
                 logger.info(f"Found single tag: {tags[0]['name']}")
