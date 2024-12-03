@@ -29,5 +29,5 @@ jobs:
         #   bcc: blindcarboncopy@example.com
         #   bcc: blindcarboncopy@example.com
           subject: GitHub Actions Notification
-          html_body: file://scripts/email_template.html
+          html_body: file://.github/scripts/email_template.html
         #   attachments: file://path/to/optional-attachment.zip
