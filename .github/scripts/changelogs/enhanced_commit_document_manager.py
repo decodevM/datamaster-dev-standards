@@ -81,7 +81,6 @@
 
 import os
 import logging
-from typing import Optional, Tuple
 from pathlib import Path
 from commit_document_manager import CommitDocumentManager
 from base_interfaces import CommitFetcher, CommitParser
@@ -106,32 +105,6 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
         logger.info(f"Output directory set to: {self.output_dir}")
-
-    def save_document(self, content: str, base_filename: str):
-        try:
-            # Create absolute path
-            filename = os.path.join(
-                self.output_dir,
-                f"{Path(base_filename).stem}_{datetime.now().strftime('%Y-%m-%d')}.md"
-            )
-            
-            # Ensure parent directory exists
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-            
-            logger.info(f"Saving document to: {filename}")
-            
-            with open(filename, 'w', encoding='utf-8') as file:
-                file.write(content)
-            
-            # Verify file was created
-            if os.path.exists(filename):
-                logger.info(f"✅ Generated {filename}")
-            else:
-                logger.error(f"❌ Failed to create file: {filename}")
-                
-        except Exception as e:
-            logger.error(f"❌ Error saving document: {e}")
-            raise
 
     def generate_all_documents(self):
         try:
@@ -176,3 +149,11 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         except Exception as e:
             logger.error(f"❌ Error generating documents: {e}")
             raise
+
+    def save_document(self, content: str, base_filename: str):
+        filename = f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.md"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(content)
+        logger.info(f"✅ Generated {filename}")
