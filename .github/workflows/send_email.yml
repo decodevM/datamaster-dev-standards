@@ -22,7 +22,7 @@ jobs:
       # Step 3: Prepare the email template
       - name: Prepare email template
         run: |
-          cp scripts/email_template.html prepared_email.html
+          cp .github/scripts/email_template.html prepared_email.html
           sed -i "s/\${{ github.repository }}/${{ github.repository }}/g" prepared_email.html
           sed -i "s/\${{ github.workflow }}/${{ github.workflow }}/g" prepared_email.html
           sed -i "s/\${{ github.run_id }}/${{ github.run_id }}/g" prepared_email.html
