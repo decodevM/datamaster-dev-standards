@@ -18,11 +18,8 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
 
     def _generate_commit_item(self, commit: Dict) -> str:
         """Generate markup for a release commit item"""
-        
-        message = f"{commit['title']}\n{commit['body']}" if commit['body'] else commit['title']
 
-        elements = ["<li class='commit-item'>", 
-                    self.generate_copy_button(message),
+        elements = ["<li class='commit-item'>",
                     f"<div class='commit-title'>{commit['title']}</div>",
                     "</li>"]
         return '\n'.join(elements)
@@ -47,7 +44,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         doc = self._generate_header(
             title=f"🚀 Release {version}",
             subtitle=f"Released on {today}",
-            latest_tag=current_tag,
+            current_tag=current_tag,
             previous_tag=previous_tag
         )
 

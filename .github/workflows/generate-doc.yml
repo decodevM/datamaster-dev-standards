@@ -1,5 +1,10 @@
 name: Generate Commit Log
 
+#on:
+#  push:
+#    branches:
+#      - '*'  # Trigger on all branches
+
 on:
   push:
     tags:

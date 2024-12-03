@@ -272,15 +272,3 @@ class StyleConfig:
             <span class="tag-badge">Previous: {previous_tag}</span>
         </div>
         """
-
-    # Add helper method for copy button
-    @staticmethod
-    def generate_copy_button(content: str) -> str:
-        return f"""
-        <button class="copy-button" 
-                data-clipboard-text="{content}"
-                onclick="this.classList.add('copied'); 
-                         setTimeout(() => this.classList.remove('copied'), 1000)">
-            Copy
-        </button>
-        """

@@ -49,9 +49,10 @@
 
 
 import requests
+from git import Tag, Commit
+
 from base_interfaces import CommitFetcher
 from typing import Dict, List, Tuple, Optional, Union
-from github import Tag, Commit
 import logging
 
 logging.basicConfig(
