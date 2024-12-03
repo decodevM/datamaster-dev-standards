@@ -12,7 +12,7 @@ class CommitFetcher(ABC):
         pass
 
     @abstractmethod
-    def get_tags(self) -> Tuple[Optional[Tag], Optional[Tag]]:
+    def get_tags(self) -> Tuple[Optional[str], Optional[str]]:
         """Get latest and previous tags if available"""
         pass
 
@@ -23,6 +23,11 @@ class CommitFetcher(ABC):
         head_ref: Union[Tag, Commit]
     ) -> List[Dict]:
         """Get commits between two refs (tags or commits)"""
+        pass
+
+    @abstractmethod
+    def get_commit_from_tag(self, tag: str) -> Commit:
+        """Get commit object from tag name"""
         pass
 
 class CommitParser(ABC):
