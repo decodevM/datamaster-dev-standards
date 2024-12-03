@@ -106,15 +106,21 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         os.makedirs(self.output_dir, exist_ok=True)
         logger.info(f"Output directory set to: {self.output_dir}")
 
+
+
     def generate_all_documents(self):
         try:
             # Get tags first
-            current_tag, previous_tag = self.commit_fetcher.get_tags()
+            current_tag_name, previous_tag_name = self.commit_fetcher.get_tags()
+
+            # Convert tag names to Commit objects
+            current_tag = self.commit_fetcher.get_commit_from_tag(current_tag_name) if current_tag_name else None
+            previous_tag = self.commit_fetcher.get_commit_from_tag(previous_tag_name) if previous_tag_name else None
 
             # Get tag names or SHA if tags are commits
-            current_ref = current_tag.name if hasattr(current_tag, 'name') else current_tag.sha[
+            current_ref = current_tag.name if hasattr(current_tag, 'name') else current_tag.hexsha[
                                                                                 :7] if current_tag else None
-            previous_ref = previous_tag.name if hasattr(previous_tag, 'name') else previous_tag.sha[
+            previous_ref = previous_tag.name if hasattr(previous_tag, 'name') else previous_tag.hexsha[
                                                                                    :7] if previous_tag else None
 
             logger.info(f"Using refs: {current_ref} -> {previous_ref}")
