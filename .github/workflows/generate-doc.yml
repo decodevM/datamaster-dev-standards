@@ -23,6 +23,7 @@ jobs:
         run: |
           pip install requests
           pip install GitPython
+          pip install PyGithub
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
