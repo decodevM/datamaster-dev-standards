@@ -57,10 +57,6 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
             previous_tag=previous_tag
         )
 
-        # Display the tags in the document
-        if current_tag and previous_tag:
-            doc.append(f"<div class='tags-info'>Current Tag: {current_tag}, Previous Tag: {previous_tag}</div>")
-
         # Check if there are any commits
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
 
