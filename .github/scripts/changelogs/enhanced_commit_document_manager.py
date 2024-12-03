@@ -151,7 +151,8 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             raise
 
     def save_document(self, content: str, base_filename: str):
-        filename = f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.md"
+        filename = os.path.join(self.output_dir,
+                                f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.md")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, 'w', encoding='utf-8') as file:
