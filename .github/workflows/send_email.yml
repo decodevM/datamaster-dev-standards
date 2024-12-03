@@ -15,32 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Fetch the latest commit logs for changelog
-      - name: Fetch Commit Logs
-        run: git log -5 --oneline > changelog.txt
-
-      # Step 3: Prepare the email template
-      # Step 3: Prepare the email template
-      - name: Prepare email template
-        run: |
-          cp .github/scripts/email_template.html prepared_email.html
-
-          # Replace placeholders in the email template
-          sed -i "s|\${{ github.repository }}|${{ github.repository }}|g" prepared_email.html
-          sed -i "s|\${{ github.workflow }}|${{ github.workflow }}|g" prepared_email.html
-          sed -i "s|\${{ github.run_id }}|${{ github.run_id }}|g" prepared_email.html
-          sed -i "s|\${{ github.actor }}|${{ github.actor }}|g" prepared_email.html
-
-          # Insert the changelog into the email template
-          CHANGELOG=$(cat changelog.txt)
-          sed -i "s|<p>The changelog was fully processed and included in this action's run.</p>|<p><strong>Changelog:</strong></p><pre>${CHANGELOG}</pre>|g" prepared_email.html
-
-          
-      # Step 4: Print the prepared email for debugging
-      - name: Print prepared email
-        run: |
-          echo "Prepared email template:"
-          cat prepared_email.html
 
       # Step 5: Send the email
       - name: Send email
