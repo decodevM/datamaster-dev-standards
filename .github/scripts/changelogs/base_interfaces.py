@@ -30,6 +30,10 @@ class CommitFetcher(ABC):
         """Get commit object from tag name"""
         pass
 
+    @abstractmethod
+    def _fetch_all_commits(self, branch: str) -> List[Dict]:
+        pass
+
 class CommitParser(ABC):
     @abstractmethod
     def parse(self, message: str) -> Optional[Dict]:

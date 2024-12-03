@@ -166,9 +166,30 @@ class GitHubCommitFetcher(CommitFetcher):
             latest_commit = self.get_commit_from_tag(latest_tag)
             previous_commit = self.get_commit_from_tag(previous_tag)
             return self.get_commits_between_refs(previous_commit, latest_commit)
-        elif latest_tag:
-            latest_commit = self.get_commit_from_tag(latest_tag)
-            initial_commit = self.repo.iter_commits().next()  # Get the initial commit
-            return self.get_commits_between_refs(initial_commit, latest_commit)
         else:
-            return self.get_commits_between_refs(self.repo.commit('HEAD'), self.repo.commit('HEAD'))
+            return self._fetch_all_commits(branch)
+
+
+    def _fetch_all_commits(self, branch: str) -> List[Dict]:
+        """Fetch all commits for a branch"""
+        commits = []
+        page = 1
+
+        while True:
+            try:
+                response = requests.get(
+                    f"{self.base_url}/commits",
+                    headers=self.headers,
+                    params={"sha": branch, "page": page}
+                )
+                response.raise_for_status()
+                data = response.json()
+                if not data:
+                    break
+                commits.extend(data)
+                page += 1
+            except Exception as e:
+                logger.error(f"Error fetching commits: {e}")
+                break
+
+        return commits
