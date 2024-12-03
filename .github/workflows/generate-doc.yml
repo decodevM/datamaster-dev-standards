@@ -1,14 +1,14 @@
 name: Generate Commit Log
 
-on:
-  push:
-    branches:
-      - '*'  # Trigger on all branches
-
 #on:
 #  push:
-#    tags:
-#      - 'v*'  # Only triggers on tags starting with 'v'
+#    branches:
+#      - '*'  # Trigger on all branches
+
+on:
+  push:
+    tags:
+      - 'v*'  # Only triggers on tags starting with 'v'
 
 jobs:
   generate-commit-log:
