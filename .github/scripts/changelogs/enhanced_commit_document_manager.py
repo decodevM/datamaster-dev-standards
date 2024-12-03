@@ -107,7 +107,6 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         logger.info(f"Output directory set to: {self.output_dir}")
 
 
-
     def generate_all_documents(self):
         try:
             # Get tags first
@@ -117,13 +116,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             current_tag = self.commit_fetcher.get_commit_from_tag(current_tag_name) if current_tag_name else None
             previous_tag = self.commit_fetcher.get_commit_from_tag(previous_tag_name) if previous_tag_name else None
 
-            # Get tag names or SHA if tags are commits
-            current_ref = current_tag.name if hasattr(current_tag, 'name') else current_tag.hexsha[
-                                                                                :7] if current_tag else None
-            previous_ref = previous_tag.name if hasattr(previous_tag, 'name') else previous_tag.hexsha[
-                                                                                   :7] if previous_tag else None
-
-            logger.info(f"Using refs: {current_ref} -> {previous_ref}")
+            logger.info(f"Using refs: {current_tag_name} -> {previous_tag_name}")
 
             # Get commits between tags if available
             if current_tag and previous_tag:
@@ -143,8 +136,8 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             for report_name, generator in generators.items():
                 content = generator.generate(
                     commits=categorized,
-                    current_tag=current_ref,
-                    previous_tag=previous_ref
+                    current_tag=current_tag_name,
+                    previous_tag=previous_tag_name
                 )
                 self.save_document(content, f"{report_name}.md")
 
