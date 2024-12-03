@@ -2,7 +2,7 @@ name: Send Email Notification After Workflow
 
 on:
   workflow_run:
-    workflows: ["Generate Commit Log"]
+    workflows: ["workflow name"]
     types:
       - completed
 
