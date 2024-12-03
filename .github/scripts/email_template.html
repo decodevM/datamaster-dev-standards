@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .header {
+      background-color: #f4f4f4;
+      padding: 10px;
+      text-align: center;
+    }
+    .content {
+      padding: 20px;
+    }
+    .footer {
+      background-color: #f4f4f4;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>GitHub Actions Notification</h1>
+  </div>
+  <div class="content">
+    <p>Hello,</p>
+    <p>The latest job for <strong>${{ github.repository }}</strong> has completed successfully.</p>
+    <p>Details:</p>
+    <ul>
+      <li>Job Name: ${{ github.workflow }}</li>
+      <li>Run ID: ${{ github.run_id }}</li>
+      <li>Triggered by: ${{ github.actor }}</li>
+    </ul>
+    <p>Thank you!</p>
+  </div>
+  <div class="footer">
+    <p>&copy; 2024 GitHub Actions</p>
+  </div>
+</body>
+</html>
