@@ -168,6 +168,7 @@ class GitHubCommitFetcher(CommitFetcher):
             return self.get_commits_between_refs(previous_commit, latest_commit)
         elif latest_tag:
             latest_commit = self.get_commit_from_tag(latest_tag)
-            return self.get_commits_between_refs(latest_commit, self.repo.commit('HEAD'))
+            initial_commit = self.repo.iter_commits().next()  # Get the initial commit
+            return self.get_commits_between_refs(initial_commit, latest_commit)
         else:
             return self.get_commits_between_refs(self.repo.commit('HEAD'), self.repo.commit('HEAD'))
