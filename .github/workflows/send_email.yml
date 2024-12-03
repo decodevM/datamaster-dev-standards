@@ -2,7 +2,7 @@ name: Send Email Notification After Workflow
 
 on:
   workflow_run:
-    workflows: ["Validate Commit Message and Check GitHub Actions Changes on PR"]
+    workflows: ["Generate Commit Log"]
     types:
       - completed
 
@@ -15,8 +15,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Download the artifact from the previous workflow
+      - name: Download commit logs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: commit-logs
+          path: ./generated_docs
 
-      # Step 5: Send the email
+      # Step 3: Send the email
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -27,6 +33,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+        #   cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
-          html_body: file://.github/scripts/email_template.html    
+          html_body: file://.github/scripts/email_template.html
+          attachments: ./generated_docs/*
