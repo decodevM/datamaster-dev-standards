@@ -1,0 +1,33 @@
+name: Send Email Notification
+
+on:
+  workflow_run:
+    workflows: ["Validate Commit Message and Check GitHub Actions Changes on PR"]
+    types:
+      - completed
+
+jobs:
+  send_email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v4
+        with:
+          connection_url: ${{ secrets.MAIL_CONNECTION }}
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: GitHub Actions <no-reply@github.com>
+          to: yacinobatlm13@gmail.com
+        #   cc: carboncopy@example.com
+        #   bcc: blindcarboncopy@example.com
+        #   bcc: blindcarboncopy@example.com
+          subject: GitHub Actions Notification
+          html_body: file://scripts/email_template.html
+        #   attachments: file://path/to/optional-attachment.zip

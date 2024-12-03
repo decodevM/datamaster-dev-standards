@@ -50,7 +50,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
         
         if not has_commits:
-            doc.extend(self._generate_empty_state())
+            doc.append(self._generate_empty_state())
         else:
                     # Generate sections for each commit type
             for type_name in self.PRIORITY_ORDER:
