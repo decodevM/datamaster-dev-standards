@@ -26,7 +26,7 @@ class BaseReportStrategy(ReportStrategy, StyleConfig):
             "<header class='header'>",
             f"<h1>{title}</h1>",
             f"<p>{subtitle}</p>",
-            f"<p>{previous_tag} -> {current_tag}</p>",
+            f"<p>{f'{previous_tag} -> ' if previous_tag else ''}{current_tag}</p>",
             "</header>"
         ]
 

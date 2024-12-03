@@ -8,11 +8,12 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
     def _generate_empty_state(self) -> str:
         """Generate markup for when there are no commits"""
         return """
-        <div class="empty-state">
-            <div class="empty-icon">🔍</div>
-            <h3>No Changes Found</h3>
-            <p>There are no commits between these tags.</p>
-        </div>
+        <div>
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3>No Changes Found</h3>
+                <p>There are no commits between these tags.</p>
+            </div>
         """
 
 
