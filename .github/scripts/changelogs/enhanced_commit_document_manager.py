@@ -135,10 +135,24 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
 
     def generate_all_documents(self):
         try:
-            commits = self.commit_fetcher.fetch_commits()
+            # Get tags first
+            current_tag, previous_tag = self.commit_fetcher.get_tags()
+
+            # Get tag names or SHA if tags are commits
+            current_ref = current_tag.name if hasattr(current_tag, 'name') else current_tag.sha[
+                                                                                :7] if current_tag else None
+            previous_ref = previous_tag.name if hasattr(previous_tag, 'name') else previous_tag.sha[
+                                                                                   :7] if previous_tag else None
+
+            logger.info(f"Using refs: {current_ref} -> {previous_ref}")
+
+            # Get commits between tags if available
+            if current_tag and previous_tag:
+                commits = self.commit_fetcher.get_commits_between_refs(previous_tag, current_tag)
+            else:
+                commits = self.commit_fetcher.fetch_commits()
+
             categorized = self.categorize_commits(commits)
-            
-            current_tag, previous_tag = self._get_tag_info()
 
             generators = {
                 'release_notes': ReportGeneratorFactory.create_generator('release'),
@@ -146,19 +160,19 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             }
 
             logger.info(f"Generating documents in: {self.output_dir}")
-            
+
             for report_name, generator in generators.items():
                 content = generator.generate(
                     commits=categorized,
-                    current_tag=current_tag,
-                    previous_tag=previous_tag
+                    current_tag=current_ref,
+                    previous_tag=previous_ref
                 )
                 self.save_document(content, f"{report_name}.md")
-                
+
             # Verify files were created
             files = list(Path(self.output_dir).glob('*.md'))
             logger.info(f"Generated {len(files)} files: {[f.name for f in files]}")
-            
+
         except Exception as e:
             logger.error(f"❌ Error generating documents: {e}")
             raise
