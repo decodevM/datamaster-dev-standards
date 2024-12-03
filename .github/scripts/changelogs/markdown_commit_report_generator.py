@@ -57,7 +57,7 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         doc = self._generate_header(
             title="📄 Commit Report",
             subtitle=f"Generated on {today}",
-            latest_tag=current_tag,
+            current_tag=current_tag,
             previous_tag=previous_tag
         )
 

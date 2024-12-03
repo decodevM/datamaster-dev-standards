@@ -47,7 +47,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         doc = self._generate_header(
             title=f"🚀 Release {version}",
             subtitle=f"Released on {today}",
-            latest_tag=current_tag,
+            current_tag=current_tag,
             previous_tag=previous_tag
         )
 
