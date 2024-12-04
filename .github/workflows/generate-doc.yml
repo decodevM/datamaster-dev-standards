@@ -127,12 +127,12 @@ jobs:
           echo "Checking generated_docs directory contents:"
           ls -la generated_docs
 
-      - name: Convert Markdown to PDF
-        uses: baileyjm02/markdown-to-pdf@v1
-        with:
-          input_path: generated_docs
-          output_dir: generated_docs/pdf_docs
-          build_html: false
+#      - name: Convert Markdown to PDF
+#        uses: baileyjm02/markdown-to-pdf@v1
+#        with:
+#          input_path: generated_docs
+#          output_dir: generated_docs/pdf_docs
+#          build_html: false
 
       - name: Upload PDFs as artifacts
         uses: actions/upload-artifact@v3
