@@ -78,4 +78,6 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         doc.append("</div>")
         doc.append("</body>")
         doc.append("</html>")
-        return '\n'.join(doc)
+
+        # Ensure all elements are strings
+        return '\n'.join(map(str, doc))
