@@ -134,12 +134,6 @@ jobs:
 #          output_dir: generated_docs/pdf_docs
 #          build_html: false
 
-      - name: Upload PDFs as artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: commit-log-pdfs
-          path: generated_docs/*
-
       - name: Install wkhtmltopdf
         run: sudo apt-get install -y wkhtmltopdf
 
@@ -147,10 +141,18 @@ jobs:
       - name: Convert All HTML Files to PDFs
         run: |
           mkdir -p generated_docs/pdf_docs
-          for file in generated_docs/*.html; do
+          for file in generated_docs/*; do
             filename=$(basename "$file" .html)
             wkhtmltopdf "$file" "generated_docs/pdf_docs/${filename}.pdf"
           done
+
+      - name: Upload PDFs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: commit-log-pdfs
+          path: generated_docs/*
+
+
 
       - name: Upload PDF as artifact
         uses: actions/upload-artifact@v3
