@@ -152,6 +152,14 @@ jobs:
           name: commit-log-pdfs
           path: pdf_docs
 
+      - name: Generate dynamic email template
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: python .github/scripts/automatic_email/main.py
+
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -162,7 +170,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
-          html_body: file://.github/scripts/email_template.html
+          html_body: file://.github/scripts/email_output.html
           attachments: generated_docs/pdf_docs/*
