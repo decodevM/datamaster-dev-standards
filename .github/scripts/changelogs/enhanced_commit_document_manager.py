@@ -139,7 +139,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
                     current_tag=current_tag_name,
                     previous_tag=previous_tag_name
                 )
-                self.save_document(content, f"{report_name}.html")
+                self.save_document(content, f"generated_docs/{report_name}.html")
 
             # Verify files were created
             files = list(Path(self.output_dir).glob('*.html'))
