@@ -137,6 +137,12 @@ jobs:
       - name: Install wkhtmltopdf
         run: sudo apt-get install -y wkhtmltopdf
 
+      - name: Upload PDFs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: commit-log-pdfs
+          path: generated_docs/*
+
 
       - name: Convert All HTML Files to PDFs
         run: |
@@ -151,11 +157,7 @@ jobs:
             fi
           done
 
-      - name: Upload PDFs as artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: commit-log-pdfs
-          path: generated_docs/*
+
 
 
 
