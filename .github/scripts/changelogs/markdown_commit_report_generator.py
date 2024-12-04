@@ -1,6 +1,5 @@
 import os
-
-from  base_report_strategy import  BaseReportStrategy
+from base_report_strategy import BaseReportStrategy
 from typing import Dict, Optional
 from datetime import datetime
 
@@ -15,12 +14,8 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
             </div>
         """
 
-
     def _generate_commit_item(self, commit: Dict) -> str:
-
         """Generate markup for a single commit"""
-
-
         elements = [
             "<li class='commit-item'>",
             f"<div class='commit-title'>{commit['title']}</div>",
