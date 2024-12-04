@@ -34,8 +34,6 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
             current_tag: Optional[str] = None,
             previous_tag: Optional[str] = None
     ) -> str:
-        """Generate release changelog HTML"""
-
         version, today = self._generate_version_info()
 
         # Generate header
@@ -62,7 +60,6 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         if not has_commits:
             doc.append(self._generate_empty_state())
         else:
-            # Generate sections for each commit type
             for type_name in self.PRIORITY_ORDER:
                 doc.extend(self._generate_type_section(
                     type_name,
@@ -72,4 +69,6 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         doc.append("</div>")
         doc.append("</body>")
         doc.append("</html>")
-        return '\n'.join(doc)
+
+        # Ensure all elements are strings
+        return '\n'.join(map(str, doc))
