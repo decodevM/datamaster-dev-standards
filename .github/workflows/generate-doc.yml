@@ -1,38 +1,125 @@
+#name: Generate Commit Log
+#
+## on:
+##  push:
+##    branches:
+##      - '*'  # Trigger on all branches
+#
+#on:
+#  push:
+#    tags:
+#      - 'v*'  # Only triggers on tags starting with 'v'
+#
+#jobs:
+#  generate-commit-log:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout the repository
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0  # Fetch all history for all tags and branches
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.x'
+#
+#      - name: Install dependencies
+#        run: |
+#          pip install requests
+#          pip install GitPython
+#          pip install PyGithub
+#
+#      - name: Create the generated_docs directory
+#        run: mkdir -p generated_docs
+#
+#      - name: Run the commit log generation script
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          REPO_OWNER: ${{ github.repository_owner }}
+#          REPO_NAME: ${{ github.event.repository.name }}
+#          TAG_NAME: ${{ github.ref_name }}  # Get the tag name that triggered the workflow
+#        run: python .github/scripts/changelogs/main.py
+#
+#      - name: Check the generated commit logs
+#        run: |
+#          echo "Checking generated_docs directory contents:"
+#          ls -la generated_docs
+#
+#      - name: Upload all commit logs as artifacts
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: commit-logs
+#          path: generated_docs/*
+#
+#      # Step 2: Download the artifact from the previous workflow
+#      - name: Download commit logs artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: commit-logs
+#          path: ./generated_docs
+#
+#      # Step 3: Send the email
+#      - name: Send email
+#        uses: dawidd6/action-send-mail@v4
+#        with:
+#          server_address: smtp.gmail.com
+#          server_port: 465
+#          secure: true
+#          username: ${{ secrets.MAIL_USERNAME }}
+#          password: ${{ secrets.MAIL_PASSWORD }}
+#          from: GitHub Actions <no-reply@github.com>
+#          to: abdelghaniyacine.barka@outlook.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          subject: GitHub Actions Notification
+#          html_body: file://.github/scripts/email_template.html
+#          attachments: ./generated_docs/*
+#
+
+
+
 name: Generate Commit Log
 
 on:
- push:
-   branches:
-     - '*'  # Trigger on all branches
+  push:
+    branches:
+      - '*'  # Trigger on all branches
 
-# on:
-#   push:
-#     tags:
-#       - 'v*'  # Only triggers on tags starting with 'v'
+#on:
+#  push:
+#    tags:
+#      - 'v*'  # Only triggers on tags starting with 'v'
 
 jobs:
   generate-commit-log:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch all history for all tags and branches
 
+      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
+      # Step 3: Install dependencies for changelog script
       - name: Install dependencies
         run: |
           pip install requests
           pip install GitPython
           pip install PyGithub
+          pip install markdown2pdf  # Add a Python library to convert Markdown to PDF
 
+      # Step 4: Create the directory for generated documents
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
 
+      # Step 5: Run the commit log generation script
       - name: Run the commit log generation script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,26 +128,30 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}  # Get the tag name that triggered the workflow
         run: python .github/scripts/changelogs/main.py
 
-      - name: Check the generated commit logs
+      # Step 6: Convert Markdown to PDF
+      - name: Convert Markdown files to PDF
         run: |
-          echo "Checking generated_docs directory contents:"
-          ls -la generated_docs
+          mkdir -p pdf_docs
+          for file in generated_docs/*.md; do
+            output="pdf_docs/$(basename "${file%.md}.pdf")"
+            markdown2pdf "$file" "$output"
+          done
 
-      - name: Upload all commit logs as artifacts
+      # Step 7: Check the generated PDFs
+      - name: Check the generated PDF files
+        run: |
+          echo "Checking pdf_docs directory contents:"
+          ls -la pdf_docs
+
+      # Step 8: Upload PDFs as artifacts
+      - name: Upload all PDFs as artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commit-logs
-          path: generated_docs/*
+          name: commit-log-pdfs
+          path: pdf_docs/*
 
-      # Step 2: Download the artifact from the previous workflow
-      - name: Download commit logs artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: commit-logs
-          path: ./generated_docs
-
-      # Step 3: Send the email
+      # Step 9: Send the email with PDFs attached
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -71,8 +162,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/email_template.html
-          attachments: ./generated_docs/*
-          
+          attachments: pdf_docs/*
