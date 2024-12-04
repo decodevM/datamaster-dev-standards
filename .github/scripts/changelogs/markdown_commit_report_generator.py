@@ -17,7 +17,7 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
 
 
     def _generate_commit_item(self, commit: Dict) -> str:
-        
+
         """Generate markup for a single commit"""
 
 
@@ -49,12 +49,22 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
         today = datetime.now().strftime("%d %B %Y")
         repo_info = f"{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
 
-        doc = self._generate_header(
-            title="📄 Commit Report",
-            subtitle=f"Generated on {today}",
-            current_tag=current_tag,
-            previous_tag=previous_tag
-        )
+        doc = [
+            "<!DOCTYPE html>",
+            "<html lang='en'>",
+            "<head>",
+            "<meta charset='UTF-8'>",
+            "<meta name='viewport' content='width=device-width, initial-scale=1.0'>",
+            "<title>Commit Report</title>",
+            "</head>",
+            "<body>",
+            self._generate_header(
+                title="📄 Commit Report",
+                subtitle=f"Generated on {today}",
+                current_tag=current_tag,
+                previous_tag=previous_tag
+            )
+        ]
 
         # Check if there are any commits
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
@@ -66,4 +76,6 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
                 doc.extend(self._generate_type_section(type_name, commits.get(type_name, {})))
 
         doc.append("</div>")
+        doc.append("</body>")
+        doc.append("</html>")
         return '\n'.join(doc)

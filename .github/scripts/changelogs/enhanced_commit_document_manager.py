@@ -139,10 +139,10 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
                     current_tag=current_tag_name,
                     previous_tag=previous_tag_name
                 )
-                self.save_document(content, f"{report_name}.md")
+                self.save_document(content, f"{report_name}.html")
 
             # Verify files were created
-            files = list(Path(self.output_dir).glob('*.md'))
+            files = list(Path(self.output_dir).glob('*.html'))
             logger.info(f"Generated {len(files)} files: {[f.name for f in files]}")
 
         except Exception as e:
@@ -151,7 +151,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
 
     def save_document(self, content: str, base_filename: str):
         filename = os.path.join(self.output_dir,
-                                f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.md")
+                                f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.html")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, 'w', encoding='utf-8') as file:
