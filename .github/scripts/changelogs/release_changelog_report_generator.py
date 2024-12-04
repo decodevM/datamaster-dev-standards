@@ -59,7 +59,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
             doc.append(self._generate_empty_state())
         else:
             for type_name in self.PRIORITY_ORDER:
-                doc.extend(self._generate_type_section(
+                doc.append(self._generate_type_section(
                     type_name,
                     commits.get(type_name, {})
                 ))
