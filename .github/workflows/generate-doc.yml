@@ -126,6 +126,7 @@ jobs:
         run: |
           echo "Checking generated_docs directory contents:"
           ls -la generated_docs
+          cd generated_docs && ls -la
 
 #      - name: Convert Markdown to PDF
 #        uses: baileyjm02/markdown-to-pdf@v1
@@ -165,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Generated PDF
-          path: generated_docs/*.pdf
+          path: generated_docs/*
 
       - name: Generate dynamic email template
         env:
