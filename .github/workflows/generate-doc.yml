@@ -138,7 +138,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: commit-log-pdfs
-          path: pdf_docs
+          path: pdf_docs,generated_docs/*
+
+      - name: Set directory permissions
+        run: chmod -R 777 pdf_docs
+
+      - name: Ensure directory exists
+        run: mkdir -p pdf_docs
 
       - name: Download PDFs for email
         uses: actions/download-artifact@v3
