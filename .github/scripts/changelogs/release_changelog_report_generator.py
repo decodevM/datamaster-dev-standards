@@ -2,7 +2,6 @@ from base_report_strategy import BaseReportStrategy
 from datetime import datetime
 from typing import Dict, Optional
 
-
 class ReleaseChangelogReportGenerator(BaseReportStrategy):
 
     def _generate_empty_state(self) -> str:
@@ -16,7 +15,6 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
 
     def _generate_commit_item(self, commit: Dict) -> str:
         """Generate markup for a release commit item"""
-
         elements = ["<li class='commit-item'>",
                     f"<div class='commit-title'>{commit['title']}</div>",
                     "</li>"]
