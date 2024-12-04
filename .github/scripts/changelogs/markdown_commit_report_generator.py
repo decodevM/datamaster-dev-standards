@@ -68,7 +68,7 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
             doc.append(self._generate_empty_state())
         else:
             for type_name in self.PRIORITY_ORDER:
-                doc.extend(self._generate_type_section(type_name, commits.get(type_name, {})))
+                doc.append(self._generate_type_section(type_name, commits.get(type_name, {})))
 
         doc.append("</div>")
         doc.append("</body>")
