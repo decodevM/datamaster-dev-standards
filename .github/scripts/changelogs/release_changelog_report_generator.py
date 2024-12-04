@@ -1,7 +1,7 @@
-
 from base_report_strategy import BaseReportStrategy
 from datetime import datetime
 from typing import Dict, Optional
+
 
 class ReleaseChangelogReportGenerator(BaseReportStrategy):
 
@@ -29,35 +29,47 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
         return version, today
 
     def generate(
-            self, 
-            commits: Dict,        
+            self,
+            commits: Dict,
             current_tag: Optional[str] = None,
             previous_tag: Optional[str] = None
-            ) -> str:
+    ) -> str:
         """Generate release changelog HTML"""
-        
-        version, today = self._generate_version_info()
-        
-        # Generate header
-        doc = self._generate_header(
-            title=f"🚀 Release {version}",
-            subtitle=f"Released on {today}",
-            current_tag=current_tag,
-            previous_tag=previous_tag
-        )
 
-         # Check if there are any commits
+        version, today = self._generate_version_info()
+
+        # Generate header
+        doc = [
+            "<!DOCTYPE html>",
+            "<html lang='en'>",
+            "<head>",
+            "<meta charset='UTF-8'>",
+            "<meta name='viewport' content='width=device-width, initial-scale=1.0'>",
+            f"<title>Release {version}</title>",
+            "</head>",
+            "<body>",
+            self._generate_header(
+                title=f"🚀 Release {version}",
+                subtitle=f"Released on {today}",
+                current_tag=current_tag,
+                previous_tag=previous_tag
+            )
+        ]
+
+        # Check if there are any commits
         has_commits = any(commits.get(type_name) for type_name in self.PRIORITY_ORDER)
-        
+
         if not has_commits:
             doc.append(self._generate_empty_state())
         else:
-                    # Generate sections for each commit type
+            # Generate sections for each commit type
             for type_name in self.PRIORITY_ORDER:
                 doc.extend(self._generate_type_section(
-                    type_name, 
+                    type_name,
                     commits.get(type_name, {})
                 ))
 
         doc.append("</div>")
+        doc.append("</body>")
+        doc.append("</html>")
         return '\n'.join(doc)
