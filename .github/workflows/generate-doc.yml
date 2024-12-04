@@ -95,63 +95,57 @@ jobs:
   generate-commit-log:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch all history for all tags and branches
 
-      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      # Step 3: Install dependencies for changelog script
       - name: Install dependencies
         run: |
           pip install requests
           pip install GitPython
           pip install PyGithub
-          pip install markdown2pdf  # Add a Python library to convert Markdown to PDF
 
-      # Step 4: Create the directory for generated documents
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
 
-      # Step 5: Run the commit log generation script
       - name: Run the commit log generation script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
-          TAG_NAME: ${{ github.ref_name }}  # Get the tag name that triggered the workflow
+          TAG_NAME: ${{ github.ref_name }}
         run: python .github/scripts/changelogs/main.py
 
-      # Step 6: Convert Markdown to PDF
-      - name: Convert Markdown files to PDF
+      - name: Check the generated commit logs
         run: |
-          mkdir -p pdf_docs
-          for file in generated_docs/*.md; do
-            output="pdf_docs/$(basename "${file%.md}.pdf")"
-            markdown2pdf "$file" "$output"
-          done
+          echo "Checking generated_docs directory contents:"
+          ls -la generated_docs
 
-      # Step 7: Check the generated PDFs
-      - name: Check the generated PDF files
-        run: |
-          echo "Checking pdf_docs directory contents:"
-          ls -la pdf_docs
+      - name: Convert Markdown to PDF
+        uses: baileyjm02/markdown-to-pdf@v1
+        with:
+          input_path: generated_docs
+          output_dir: pdf_docs
+          build_html: false
 
-      # Step 8: Upload PDFs as artifacts
-      - name: Upload all PDFs as artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload PDFs as artifacts
+        uses: actions/upload-artifact@v3
         with:
           name: commit-log-pdfs
-          path: pdf_docs/*
+          path: pdf_docs
 
-      # Step 9: Send the email with PDFs attached
+      - name: Download PDFs for email
+        uses: actions/download-artifact@v3
+        with:
+          name: commit-log-pdfs
+          path: pdf_docs
+
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -162,7 +156,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/email_template.html
           attachments: pdf_docs/*
