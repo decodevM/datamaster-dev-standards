@@ -140,17 +140,17 @@ jobs:
           name: commit-log-pdfs
           path: generated_docs/*
 
-#      - name: Set directory permissions
-#        run: chmod -R 777 pdf_docs/*
-#
-#      - name: Ensure directory exists
-#        run: mkdir -p pdf_docs
-#
-#      - name: Download PDFs for email
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: commit-log-pdfs
-#          path: pdf_docs
+      - name: Install wkhtmltopdf
+        run: sudo apt-get install -y wkhtmltopdf
+
+      - name: Convert HTML to PDF
+        run: wkhtmltopdf generated_docs/*.html generated_docs/*.pdf
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Generated PDF
+          path: generated_docs/*.pdf
 
       - name: Generate dynamic email template
         env:
