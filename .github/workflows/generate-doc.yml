@@ -142,15 +142,15 @@ jobs:
 
 #      - name: Set directory permissions
 #        run: chmod -R 777 pdf_docs/*
-
-      - name: Ensure directory exists
-        run: mkdir -p pdf_docs
-
-      - name: Download PDFs for email
-        uses: actions/download-artifact@v3
-        with:
-          name: commit-log-pdfs
-          path: pdf_docs
+#
+#      - name: Ensure directory exists
+#        run: mkdir -p pdf_docs
+#
+#      - name: Download PDFs for email
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: commit-log-pdfs
+#          path: pdf_docs
 
       - name: Generate dynamic email template
         env:
@@ -173,4 +173,4 @@ jobs:
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
-          attachments: generated_docs/pdf_docs/*
+#          attachments: generated_docs/pdf_docs/*
