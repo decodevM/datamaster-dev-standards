@@ -131,14 +131,14 @@ jobs:
         uses: baileyjm02/markdown-to-pdf@v1
         with:
           input_path: generated_docs
-          output_dir: pdf_docs
+          output_dir: generated_docs/pdf_docs
           build_html: false
 
       - name: Upload PDFs as artifacts
         uses: actions/upload-artifact@v3
         with:
           name: commit-log-pdfs
-          path: pdf_docs,generated_docs/*
+          path: generated_docs/*
 
 #      - name: Set directory permissions
 #        run: chmod -R 777 pdf_docs/*
@@ -165,4 +165,4 @@ jobs:
           cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/email_template.html
-          attachments: pdf_docs/*
+          attachments: generated_docs/pdf_docs/*
