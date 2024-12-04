@@ -81,15 +81,15 @@
 
 name: Generate Commit Log
 
-on:
-  push:
-    branches:
-      - '*'  # Trigger on all branches
-
 #on:
 #  push:
-#    tags:
-#      - 'v*'  # Only triggers on tags starting with 'v'
+#    branches:
+#      - '*'  # Trigger on all branches
+
+on:
+  push:
+    tags:
+      - 'v*'  # Only triggers on tags starting with 'v'
 
 jobs:
   generate-commit-log:
@@ -141,7 +141,7 @@ jobs:
           path: pdf_docs,generated_docs/*
 
       - name: Set directory permissions
-        run: chmod -R 777 pdf_docs
+        run: chmod -R 777 pdf_docs/*
 
       - name: Ensure directory exists
         run: mkdir -p pdf_docs
