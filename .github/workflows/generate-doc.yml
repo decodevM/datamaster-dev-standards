@@ -141,9 +141,14 @@ jobs:
       - name: Convert All HTML Files to PDFs
         run: |
           mkdir -p generated_docs/pdf_docs
-          for file in generated_docs; do
-            filename=$(basename "$file" .html)
-            wkhtmltopdf "$file" "generated_docs/pdf_docs/${filename}.pdf"
+          for file in generated_docs/*.html; do
+            if [ -f "$file" ]; then
+              echo "Processing $file"
+              filename=$(basename "$file" .html)
+              wkhtmltopdf "$file" "generated_docs/pdf_docs/${filename}.pdf"
+            else
+              echo "No HTML files found in generated_docs."
+            fi
           done
 
       - name: Upload PDFs as artifacts
