@@ -128,23 +128,6 @@ jobs:
           ls -la generated_docs
           cd generated_docs && ls -la
 
-#      - name: Convert Markdown to PDF
-#        uses: baileyjm02/markdown-to-pdf@v1
-#        with:
-#          input_path: generated_docs
-#          output_dir: generated_docs/pdf_docs
-#          build_html: false
-
-      - name: Install wkhtmltopdf
-        run: sudo apt-get install -y wkhtmltopdf
-
-      - name: Upload PDFs as artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: commit-log-pdfs
-          path: generated_docs/*
-
-
       - name: Convert All HTML Files to PDFs
         run: |
           mkdir -p generated_docs/pdf_docs
@@ -152,21 +135,22 @@ jobs:
             if [ -f "$file" ]; then
               echo "Processing $file"
               filename=$(basename "$file" .html)
-              wkhtmltopdf "$file" "generated_docs/pdf_docs/${filename}.pdf"
+              gh run -n "html to pdf" -u fifsky/html-to-pdf-action@master -w \
+                htmlFile="$file" \
+                outputFile="generated_docs/pdf_docs/${filename}.pdf" \
+                pdfOptions='{"format": "A4", "margin": {"top": "10mm", "left": "10mm", "right": "10mm", "bottom": "10mm"}}'
             else
               echo "No HTML files found in generated_docs."
             fi
           done
 
-
-
-
-
       - name: Upload PDF as artifact
         uses: actions/upload-artifact@v3
         with:
           name: Generated PDF
-          path: generated_docs/*
+          path: generated_docs/pdf_docs/*
+
+
 
       - name: Generate dynamic email template
         env:
