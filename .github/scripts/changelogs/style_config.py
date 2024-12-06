@@ -25,7 +25,7 @@ class StyleConfig:
 
     # Base styles for modern light theme
     BASE_STYLES = """
-         :root {
+ :root {
         --color-bg: #ffffff;
         --color-surface: #ffffff;
         --color-elevated: #f0f0f0;
@@ -59,7 +59,6 @@ class StyleConfig:
     }
 
     .header {
-        background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
         color: black;
         padding: 3rem 2rem;
         border-radius: var(--radius-lg);
@@ -72,9 +71,6 @@ class StyleConfig:
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        background: linear-gradient(to right, #000, #4a4a4a);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
     }
 
     .header p {
@@ -117,6 +113,7 @@ class StyleConfig:
         transform: translateY(-1px);
         box-shadow: var(--shadow-md);
         border-color: var(--color-text-secondary);
+        color: var(--color-text);
     }
 
     .commit-list {
@@ -141,6 +138,12 @@ class StyleConfig:
     }
 
     .commit-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text);
+    }
+
+    .commit-title:hover {
         font-size: 1rem;
         font-weight: 600;
         color: var(--color-text);
