@@ -78,7 +78,7 @@
 
 
 
-
+from weasyprint import HTML
 import os
 import logging
 from pathlib import Path
@@ -134,12 +134,16 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             logger.info(f"Generating documents in: {self.output_dir}")
 
             for report_name, generator in generators.items():
+                # Generate HTML content
                 content = generator.generate(
                     commits=categorized,
                     current_tag=current_tag_name,
                     previous_tag=previous_tag_name
                 )
-                self.save_document(content, f"generated_docs/{report_name}.html")
+                # self.save_document(content, f"generated_docs/{report_name}.html")
+                html_file = self.save_document(content, f"generated_docs/{report_name}.html")
+                # Generate corresponding PDF file
+                self.generate_pdf(html_file)
 
             # Verify files were created
             files = list(Path(self.output_dir).glob('*.html'))
@@ -150,10 +154,24 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             raise
 
     def save_document(self, content: str, base_filename: str):
+        """Save HTML content to a file and return the file path."""
         filename = os.path.join(self.output_dir,
                                 f"{os.path.splitext(base_filename)[0]}_{datetime.now().strftime('%Y-%m-%d')}.html")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, 'w', encoding='utf-8') as file:
             file.write(content)
+
         logger.info(f"✅ Generated {filename}")
+        return filename
+
+
+    def generate_pdf(self, html_file: str):
+        """Generate a PDF from the given HTML file."""
+        try:
+            pdf_file = os.path.splitext(html_file)[0] + '.pdf'
+            HTML(html_file).write_pdf(pdf_file)
+            logger.info(f"✅ Generated PDF: {pdf_file}")
+        except Exception as e:
+            logger.error(f"❌ Error generating PDF for {html_file}: {e}")
+            raise
