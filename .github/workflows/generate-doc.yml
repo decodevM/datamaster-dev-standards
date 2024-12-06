@@ -103,6 +103,14 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: python .github/scripts/automatic_email/main.py
 
+
+      - name: Upload Generated PDFs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Converted PDFs
+          path: generated_docs/*
+
+
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -118,11 +126,7 @@ jobs:
           html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: ./generated_docs/*
 
-      - name: Upload Generated PDFs
-        uses: actions/upload-artifact@v3
-        with:
-          name: Converted PDFs
-          path: generated_docs/*
+
 
 
 
