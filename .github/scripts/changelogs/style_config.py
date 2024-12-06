@@ -25,7 +25,7 @@ class StyleConfig:
 
     # Base styles for modern light theme
     BASE_STYLES = """
- :root {
+  :root {
         --color-bg: #ffffff;
         --color-surface: #ffffff;
         --color-elevated: #f0f0f0;
@@ -59,6 +59,7 @@ class StyleConfig:
     }
 
     .header {
+        background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
         color: black;
         padding: 3rem 2rem;
         border-radius: var(--radius-lg);
@@ -71,6 +72,9 @@ class StyleConfig:
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 1rem;
+        background: linear-gradient(to right, #000, #4a4a4a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .header p {
@@ -107,6 +111,7 @@ class StyleConfig:
         color: var(--color-text);
         margin: 0.5rem 0;
         transition: var(--transition);
+        
     }
 
     .scope-tag:hover {
@@ -128,6 +133,7 @@ class StyleConfig:
         padding: 1rem;
         margin-bottom: 1rem;
         transition: var(--transition);
+        color: var(--color-text);
     }
 
     .commit-item:hover {
@@ -135,15 +141,10 @@ class StyleConfig:
         box-shadow: var(--shadow-md);
         border-color: var(--color-text-secondary);
         background: var(--color-elevated);
-    }
-
-    .commit-title {
-        font-size: 1rem;
-        font-weight: 600;
         color: var(--color-text);
     }
 
-    .commit-title:hover {
+    .commit-title {
         font-size: 1rem;
         font-weight: 600;
         color: var(--color-text);
@@ -198,6 +199,7 @@ class StyleConfig:
 
     .commit-item {
         position: relative;
+        color: var(--color-text);
     }
 
     .copy-button {
@@ -217,6 +219,7 @@ class StyleConfig:
 
     .commit-item:hover .copy-button {
         opacity: 1;
+        color: var(--color-text);
     }
 
     .copy-button:hover {
