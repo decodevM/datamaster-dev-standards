@@ -92,11 +92,7 @@ jobs:
 #          })();
 #          EOF
 
-      - name: Upload Generated PDFs
-        uses: actions/upload-artifact@v3
-        with:
-          name: Converted PDFs
-          path: generated_docs/*
+
 
 
       - name: Generate dynamic email template
@@ -121,6 +117,12 @@ jobs:
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: generated_docs/*
+
+      - name: Upload Generated PDFs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Converted PDFs
+          path: generated_docs/*
 
 
 
