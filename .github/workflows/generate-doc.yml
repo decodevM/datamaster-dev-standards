@@ -36,33 +36,67 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: python .github/scripts/changelogs/main.py
 
-      - name: Check the generated commit logs
-        run: |
-          echo "Checking generated_docs directory contents:"
-          ls -la generated_docs
-          cd generated_docs && ls -la
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
 
-      - name: Convert All HTML Files to PDFs
+      - name: Install Puppeteer
+        run: |
+          npm init -y
+          npm install puppeteer
+
+      - name: Convert HTML to PDF
         run: |
           mkdir -p generated_docs/pdf_docs
-          for file in generated_docs/*.html; do
-            if [ -f "$file" ]; then
-              echo "Processing $file"
-              filename=$(basename "$file" .html)
-              gh run -n "html to pdf" -u fifsky/html-to-pdf-action@master -w \
-                htmlFile="$file" \
-                outputFile="generated_docs/pdf_docs/${filename}.pdf" \
-                pdfOptions='{"format": "A4", "margin": {"top": "10mm", "left": "10mm", "right": "10mm", "bottom": "10mm"}}'
-            else
-              echo "No HTML files found in generated_docs."
-            fi
-          done
+          node <<EOF
+          const fs = require('fs');
+          const path = require('path');
+          const puppeteer = require('puppeteer');
 
-      - name: Upload PDF as artifact
+          (async () => {
+            const browser = await puppeteer.launch();
+            const htmlDir = path.resolve('generated_docs');
+            const pdfDir = path.resolve('generated_docs/pdf_docs');
+
+            if (!fs.existsSync(pdfDir)) {
+              fs.mkdirSync(pdfDir, { recursive: true });
+            }
+
+            const files = fs.readdirSync(htmlDir).filter(file => file.endsWith('.html'));
+
+            if (files.length === 0) {
+              console.log('No HTML files found to convert.');
+            } else {
+              for (const file of files) {
+                const filePath = path.join(htmlDir, file);
+                const outputFilePath = path.join(pdfDir, file.replace('.html', '.pdf'));
+
+                console.log(`Processing: ${filePath}`);
+                const page = await browser.newPage();
+                await page.goto('file://' + filePath, { waitUntil: 'networkidle0' });
+
+                await page.pdf({
+                  path: outputFilePath,
+                  format: 'A4',
+                  printBackground: true,
+                });
+
+                console.log(`Generated PDF: ${outputFilePath}`);
+                await page.close();
+              }
+            }
+
+            await browser.close();
+          })();
+          EOF
+
+      - name: Upload Generated PDFs
         uses: actions/upload-artifact@v3
         with:
-          name: Generated PDF
+          name: Converted PDFs
           path: generated_docs/pdf_docs/*
+
 
       - name: Generate dynamic email template
         env:
