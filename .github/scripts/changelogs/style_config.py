@@ -34,7 +34,7 @@ class StyleConfig:
     --color-border: rgba(0, 0, 0, 0.1);
     --radius-base: 8px;
     --radius-lg: 16px;
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,1);
     --shadow-md: 0 4px 8px rgba(0,0,0,0.2);
     --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
