@@ -16,7 +16,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
     def _generate_commit_item(self, commit: Dict) -> str:
         """Generate markup for a release commit item"""
         elements = ["<li class='commit-item'>",
-                    f"<div class='commit-title'>{commit['title']}</div>",
+                    f"<h1 class='commit-title'>{commit['title']}</h1>",
                     "</li>"]
         return '\n'.join(elements)
 
