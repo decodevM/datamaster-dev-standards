@@ -41,11 +41,11 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
             "<head>",
             "<meta charset='UTF-8'>",
             "<meta name='viewport' content='width=device-width, initial-scale=1.0'>",
-            f"<title>Release {version}</title>",
+            f"<title>Release</title>",
             "</head>",
             "<body>",
             self._generate_header(
-                title=f"🚀 Release {version}",
+                title=f"🚀 Release",
                 subtitle=f"Released on {today}",
                 current_tag=current_tag,
                 previous_tag=previous_tag
