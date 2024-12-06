@@ -24,6 +24,7 @@ jobs:
           pip install requests
           pip install GitPython
           pip install PyGithub
+          pip install weasyprint
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
@@ -36,66 +37,66 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: python .github/scripts/changelogs/main.py
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install Puppeteer
-        run: |
-          npm init -y
-          npm install puppeteer
-
-      - name: Convert HTML to PDF
-        run: |
-          mkdir -p generated_docs/pdf_docs
-          node <<EOF
-          const fs = require('fs');
-          const path = require('path');
-          const puppeteer = require('puppeteer');
-
-          (async () => {
-            const browser = await puppeteer.launch();
-            const htmlDir = path.resolve('generated_docs');
-            const pdfDir = path.resolve('generated_docs/pdf_docs');
-
-            if (!fs.existsSync(pdfDir)) {
-              fs.mkdirSync(pdfDir, { recursive: true });
-            }
-
-            const files = fs.readdirSync(htmlDir).filter(file => file.endsWith('.html'));
-
-            if (files.length === 0) {
-              console.log('No HTML files found to convert.');
-            } else {
-              for (const file of files) {
-                const filePath = path.join(htmlDir, file);
-                const outputFilePath = path.join(pdfDir, file.replace('.html', '.pdf'));
-
-                console.log(`Processing: ${filePath}`);
-                const page = await browser.newPage();
-                await page.goto('file://' + filePath, { waitUntil: 'networkidle0' });
-
-                await page.pdf({
-                  path: outputFilePath,
-                  format: 'A4',
-                  printBackground: true,
-                });
-
-                console.log(`Generated PDF: ${outputFilePath}`);
-                await page.close();
-              }
-            }
-
-            await browser.close();
-          })();
-          EOF
+#      - name: Use Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: '16'
+#
+#      - name: Install Puppeteer
+#        run: |
+#          npm init -y
+#          npm install puppeteer
+#
+#      - name: Convert HTML to PDF
+#        run: |
+#          mkdir -p generated_docs/pdf_docs
+#          node <<EOF
+#          const fs = require('fs');
+#          const path = require('path');
+#          const puppeteer = require('puppeteer');
+#
+#          (async () => {
+#            const browser = await puppeteer.launch();
+#            const htmlDir = path.resolve('generated_docs');
+#            const pdfDir = path.resolve('generated_docs/pdf_docs');
+#
+#            if (!fs.existsSync(pdfDir)) {
+#              fs.mkdirSync(pdfDir, { recursive: true });
+#            }
+#
+#            const files = fs.readdirSync(htmlDir).filter(file => file.endsWith('.html'));
+#
+#            if (files.length === 0) {
+#              console.log('No HTML files found to convert.');
+#            } else {
+#              for (const file of files) {
+#                const filePath = path.join(htmlDir, file);
+#                const outputFilePath = path.join(pdfDir, file.replace('.html', '.pdf'));
+#
+#                console.log(`Processing: ${filePath}`);
+#                const page = await browser.newPage();
+#                await page.goto('file://' + filePath, { waitUntil: 'networkidle0' });
+#
+#                await page.pdf({
+#                  path: outputFilePath,
+#                  format: 'A4',
+#                  printBackground: true,
+#                });
+#
+#                console.log(`Generated PDF: ${outputFilePath}`);
+#                await page.close();
+#              }
+#            }
+#
+#            await browser.close();
+#          })();
+#          EOF
 
       - name: Upload Generated PDFs
         uses: actions/upload-artifact@v3
         with:
           name: Converted PDFs
-          path: generated_docs/pdf_docs/*
+          path: generated_docs/*
 
 
       - name: Generate dynamic email template
