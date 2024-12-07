@@ -78,7 +78,7 @@
 
 
 
-from weasyprint import HTML
+# from weasyprint import HTML
 import pdfkit
 import os
 import logging
@@ -142,7 +142,8 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
                     previous_tag=previous_tag_name
                 )
                 # self.save_document(content, f"generated_docs/{report_name}.html")
-                html_file = self.save_document(content, f"generated_docs/{report_name}.html")
+                html_file = self.save_document(content, f"{report_name}.html")
+
                 # Generate corresponding PDF file
                 self.generate_pdf(html_file)
 
