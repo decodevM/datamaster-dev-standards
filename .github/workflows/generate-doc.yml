@@ -61,7 +61,7 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          files=$(ls generated_docs/*)
+          files=$(find generated_docs -type f)
           echo "::set-output name=files::$files"
 
       - name: Set permissions for generated_docs directory
