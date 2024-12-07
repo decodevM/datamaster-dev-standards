@@ -56,11 +56,17 @@ jobs:
           ls -all generated_docs/*
           pwd
 
-#      - name: Upload Generated PDFs
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: Converted-PDFs
-#          path: generated_docs/*
+      - name: Upload Generated PDFs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Converted-PDFs
+          path: generated_docs/*
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Converted-PDFs
+          path: downloaded_docs
 
       - name: Send email
         uses: dawidd6/action-send-mail@v4
@@ -75,7 +81,7 @@ jobs:
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
-          attachments: generated_docs/commit_report_2024-12-07.html
+          attachments: downloaded_docs/*
 
 
 
