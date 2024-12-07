@@ -31,7 +31,6 @@ jobs:
           pip install PyGithub
           pip install weasyprint
           pip install pdfkit
-          pip install wkhtmltopdf
           sudo apt-get update
           sudo apt-get install -y wkhtmltopdf
 
@@ -84,7 +83,7 @@ jobs:
           to: abdelghaniyacine.barka@outlook.com
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
-#          html_body: file://.github/scripts/automatic_email/email_output.html
+          html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: ${{ steps.list_files.outputs.files }}
 
 
@@ -92,8 +91,3 @@ jobs:
         id: list_files2
         run: |
           echo ${{ steps.list_files.outputs.files }}
-
-
-
-
-
