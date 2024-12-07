@@ -53,7 +53,7 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          ls -all generated_docs/*
+          ls -all ./generated_docs/*.html
           pwd
 
       - name: Upload Generated PDFs
