@@ -61,7 +61,7 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          files=$(ls generated_docs/*.pdf)
+          files=$(ls generated_docs/*)
           echo "::set-output name=files::$files"
 
       - name: Send email
