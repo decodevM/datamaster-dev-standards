@@ -32,6 +32,7 @@ jobs:
           pip install weasyprint
           pip install pdfkit
           pip install wkhtmltopdf
+          apt-get install wkhtmltopdf
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
