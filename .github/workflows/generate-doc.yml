@@ -58,14 +58,15 @@ jobs:
           name: Converted-PDFs
           path: generated_docs/*
 
+      - name: Set permissions for generated_docs directory
+        run: chmod -R 777 generated_docs
+
       - name: List generated files
         id: list_files
         run: |
           files=$(find generated_docs -type f)
           echo "::set-output name=files::$files"
 
-      - name: Set permissions for generated_docs directory
-        run: chmod -R 777 generated_docs
 
       - name: Send email
         uses: dawidd6/action-send-mail@v4
