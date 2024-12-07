@@ -77,7 +77,7 @@ jobs:
           to: abdelghaniyacine.barka@outlook.com
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
-          html_body: file://.github/scripts/automatic_email/email_output.html
+#          html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: ${{ steps.list_files.outputs.files }}
 
 
