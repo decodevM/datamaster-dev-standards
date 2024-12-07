@@ -54,6 +54,7 @@ jobs:
         id: list_files
         run: |
           ls -all generated_docs/*
+          pwd
 
 #      - name: Upload Generated PDFs
 #        uses: actions/upload-artifact@v3
