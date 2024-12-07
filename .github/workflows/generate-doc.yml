@@ -81,8 +81,8 @@ jobs:
           attachments: ./generated_docs/*.html
 
 
-      - name: List generated files
-        id: list_files
+      - name: List generated files2
+        id: list_files2
         run: |
           ls -all generated_docs/*
           pwd
