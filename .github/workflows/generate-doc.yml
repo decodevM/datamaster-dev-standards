@@ -55,11 +55,11 @@ jobs:
         run: |
           ls generated_docs/*
 
-      - name: Upload Generated PDFs
-        uses: actions/upload-artifact@v3
-        with:
-          name: Converted-PDFs
-          path: generated_docs/*
+#      - name: Upload Generated PDFs
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: Converted-PDFs
+#          path: generated_docs/*
 
       - name: Send email
         uses: dawidd6/action-send-mail@v4
