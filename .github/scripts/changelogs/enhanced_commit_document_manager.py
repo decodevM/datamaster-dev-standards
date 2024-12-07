@@ -79,6 +79,7 @@
 
 
 from weasyprint import HTML
+import pdfkit
 import os
 import logging
 from pathlib import Path
@@ -143,7 +144,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
                 # self.save_document(content, f"generated_docs/{report_name}.html")
                 html_file = self.save_document(content, f"generated_docs/{report_name}.html")
                 # Generate corresponding PDF file
-                self.generate_pdf(html_file)
+                self.generate_pdf(f"generated_docs/{report_name}.html")
 
             # Verify files were created
             files = list(Path(self.output_dir).glob('*.html'))
@@ -166,11 +167,23 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
         return filename
 
 
+    # def generate_pdf(self, html_file: str):
+    #     """Generate a PDF from the given HTML file."""
+    #     try:
+    #         pdf_file = os.path.splitext(html_file)[0] + '.pdf'
+    #         HTML(html_file).write_pdf(pdf_file)
+    #         logger.info(f"✅ Generated PDF: {pdf_file}")
+    #     except Exception as e:
+    #         logger.error(f"❌ Error generating PDF for {html_file}: {e}")
+    #         raise
+
+
+
     def generate_pdf(self, html_file: str):
-        """Generate a PDF from the given HTML file."""
+        """Generate a PDF from the given HTML file using pdfkit."""
         try:
             pdf_file = os.path.splitext(html_file)[0] + '.pdf'
-            HTML(html_file).write_pdf(pdf_file)
+            pdfkit.from_file(html_file, pdf_file)
             logger.info(f"✅ Generated PDF: {pdf_file}")
         except Exception as e:
             logger.error(f"❌ Error generating PDF for {html_file}: {e}")

@@ -30,6 +30,7 @@ jobs:
           pip install GitPython
           pip install PyGithub
           pip install weasyprint
+          pip install pdfkit
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs
