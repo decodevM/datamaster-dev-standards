@@ -64,9 +64,9 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          files=$(find generated_docs -type f \( -name "*.html" -o -name "*.pdf" \))
+          files=$(find generated_docs -type f \( -name "*.html" -o -name "*.pdf" \) | tr '\n' ',')
+          files=${files%,}
           echo "::set-output name=files::$files"
-
 
       - name: Send email
         uses: dawidd6/action-send-mail@v4
