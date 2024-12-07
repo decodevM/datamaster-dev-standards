@@ -2,8 +2,13 @@ name: Generate Commit Log
 
 on:
   push:
-    tags:
-      - 'v*'  # Only triggers on tags starting with 'v'
+    branches:
+      - '*'  # Trigger on all branches
+
+#on:
+#  push:
+#    tags:
+#      - 'v*'  # Only triggers on tags starting with 'v'
 
 jobs:
   generate-commit-log:
@@ -37,64 +42,6 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: python .github/scripts/changelogs/main.py
 
-#      - name: Use Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: '16'
-#
-#      - name: Install Puppeteer
-#        run: |
-#          npm init -y
-#          npm install puppeteer
-#
-#      - name: Convert HTML to PDF
-#        run: |
-#          mkdir -p generated_docs/pdf_docs
-#          node <<EOF
-#          const fs = require('fs');
-#          const path = require('path');
-#          const puppeteer = require('puppeteer');
-#
-#          (async () => {
-#            const browser = await puppeteer.launch();
-#            const htmlDir = path.resolve('generated_docs');
-#            const pdfDir = path.resolve('generated_docs/pdf_docs');
-#
-#            if (!fs.existsSync(pdfDir)) {
-#              fs.mkdirSync(pdfDir, { recursive: true });
-#            }
-#
-#            const files = fs.readdirSync(htmlDir).filter(file => file.endsWith('.html'));
-#
-#            if (files.length === 0) {
-#              console.log('No HTML files found to convert.');
-#            } else {
-#              for (const file of files) {
-#                const filePath = path.join(htmlDir, file);
-#                const outputFilePath = path.join(pdfDir, file.replace('.html', '.pdf'));
-#
-#                console.log(`Processing: ${filePath}`);
-#                const page = await browser.newPage();
-#                await page.goto('file://' + filePath, { waitUntil: 'networkidle0' });
-#
-#                await page.pdf({
-#                  path: outputFilePath,
-#                  format: 'A4',
-#                  printBackground: true,
-#                });
-#
-#                console.log(`Generated PDF: ${outputFilePath}`);
-#                await page.close();
-#              }
-#            }
-#
-#            await browser.close();
-#          })();
-#          EOF
-
-
-
-
       - name: Generate dynamic email template
         env:
           REPO_NAME: ${{ github.event.repository.name }}
@@ -121,10 +68,10 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
-          attachments: ./generated_docs/*
+          attachments: generated_docs/*
 
 
 
