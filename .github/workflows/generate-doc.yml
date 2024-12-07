@@ -58,6 +58,12 @@ jobs:
           path: generated_docs/*
 
 
+      - name: List generated files
+        id: list_files
+        run: |
+          files=$(ls generated_docs/*.pdf)
+          echo "::set-output name=files::$files"
+
       - name: Send email
         uses: dawidd6/action-send-mail@v4
         with:
@@ -71,9 +77,7 @@ jobs:
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
-          attachments: |
-            generated_docs/*.pdf
-            generated_docs/*.pdf
+          attachments: ${{ steps.list_files.outputs.files }}
 
 
 
