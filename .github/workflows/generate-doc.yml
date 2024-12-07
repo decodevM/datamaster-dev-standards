@@ -64,7 +64,7 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          files=$(find generated_docs -type f)
+          files=$(find generated_docs -type f \( -name "*.html" -o -name "*.pdf" \))
           echo "::set-output name=files::$files"
 
 
