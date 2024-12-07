@@ -143,7 +143,7 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
                 # self.save_document(content, f"generated_docs/{report_name}.html")
                 html_file = self.save_document(content, f"generated_docs/{report_name}.html")
                 # Generate corresponding PDF file
-                self.generate_pdf(html_file)
+                # self.generate_pdf(html_file)
 
             # Verify files were created
             files = list(Path(self.output_dir).glob('*.html'))
