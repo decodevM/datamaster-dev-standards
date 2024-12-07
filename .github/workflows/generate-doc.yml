@@ -61,8 +61,8 @@ jobs:
       - name: List generated files
         id: list_files
         run: |
-          ls -all generated_docs/*
-          pwd
+          files=$(ls generated_docs/*.html)
+          echo "::set-output name=files::$files"
           
 
       - name: Send email
@@ -78,7 +78,7 @@ jobs:
 #          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
-          attachments: ./generated_docs/*.html
+          attachments: ${{ steps.list_files.outputs.files }}
 
 
       - name: List generated files2
