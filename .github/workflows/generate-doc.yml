@@ -29,10 +29,14 @@ jobs:
           pip install requests
           pip install GitPython
           pip install PyGithub
-          pip install weasyprint
-          pip install pdfkit
+#          pip install weasyprint
+#          pip install pdfkit
           sudo apt-get update
-          sudo apt-get install -y wkhtmltopdf
+#          sudo apt-get install -y wkhtmltopdf
+          
+          sudo apt remove wkhtmltopdf
+          wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.focal_amd64.deb
+          sudo apt install ./wkhtmltox_0.12.6-1.focal_amd64.deb
 
       - name: Create the generated_docs directory
         run: mkdir -p generated_docs

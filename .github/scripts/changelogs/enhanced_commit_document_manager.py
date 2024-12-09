@@ -1,7 +1,6 @@
 
 # from weasyprint import HTML
 import subprocess
-import pdfkit
 import os
 import logging
 from pathlib import Path
@@ -114,7 +113,9 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
             # Command to use wkhtmltopdf
             command = [
                 "wkhtmltopdf",
-                "--enable-local-file-access",  # Allow access to local files like CSS and images
+                "--enable-local-file-access",  # Allow access to local files
+                "--print-media-type",  # Use @media print styles
+                "--no-stop-slow-scripts",  # Allow rendering of dynamic content
                 html_file,
                 pdf_file
             ]

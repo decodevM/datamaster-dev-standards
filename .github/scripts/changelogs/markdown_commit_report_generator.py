@@ -51,6 +51,7 @@ class MarkdownCommitReportGenerator(BaseReportStrategy):
             "<meta charset='UTF-8'>",
             "<meta name='viewport' content='width=device-width, initial-scale=1.0'>",
             "<title>Commit Report</title>",
+            """<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap" rel="stylesheet">"""
             "</head>",
             "<body>",
             self._generate_header(
