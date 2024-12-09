@@ -16,8 +16,31 @@ def populate_email_template(template_path, output_path, context):
 
 if __name__ == "__main__":
     # Environment variables for dynamic data
+
+    # Define a dictionary to map repository names to application names
+    REPO_APP_MAPPING = {
+        "datamaster-dev-standards": "DataMaster Dev Standards",
+        "DMAdministration": "Administration",
+        "DMDashbord": "Dashbord",
+        "DMExpoImpo": "Expo&Impo",
+        "DMInventorying": "Inventorying",
+        "DMPriceViewer": "Price Viewer",
+        "DMReferentiel": "Referential",
+        "DMSPOS": "POS",
+        "DMSPurchase": "Purchase",
+        "DMSTASK": "TASK",
+        "TaskWeb": "TASK Web",
+        # Add more mappings as needed
+    }
+
+    # Get the repository name from the environment
+    repo_name = os.getenv("REPO_NAME", "Unknown Repository")
+
+    # Get the application name based on the repository name
+    app_name = REPO_APP_MAPPING.get(repo_name, "Unknown")
+
     context = {
-        "repoName": os.getenv("REPO_NAME", "Unknown Repository"),
+        "appName": app_name,
         "tagName": os.getenv("TAG_NAME", "Unknown Tag"),
         "date": datetime.now().strftime('%Y-%m-%d'),
         "year": datetime.now().strftime('%Y')
