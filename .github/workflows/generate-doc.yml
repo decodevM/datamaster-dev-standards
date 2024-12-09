@@ -79,7 +79,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: ${{ steps.list_files.outputs.files }}

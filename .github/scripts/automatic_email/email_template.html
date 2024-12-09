@@ -46,6 +46,7 @@
       align-items: center;
       justify-content: center;
       padding: 16px; /* Padding inside the shape */
+      text-align: center;
     }
 
     .header .logo-container img {
@@ -117,8 +118,9 @@
     <div class="content">
       <strong>Hello,</strong>
       <p>
-        We’re thrilled to announce a new release for the repository 
-        <strong style="color: #3498db; font-weight: 600;">{{repoName}}!</strong>
+        We’re thrilled to announce a new release for the
+        <strong style="color: #3498db; font-weight: 600;">{{appName}}</strong>
+        application!
       </p>
       <p>
         The changelog for the latest version, <strong>{{tagName}}</strong>, has been generated and is available for your review.
@@ -126,7 +128,7 @@
       <div class="details">
         <h2>Release Details:</h2>
         <ul>
-          <li><span>Repository:</span><span>{{repoName}}</span></li>
+          <li><span>Application:</span><span>{{appName}}</span></li>
           <li><span>Version:</span><span>{{tagName}}</span></li>
           <li><span>Release Date:</span><span>{{date}}</span></li>
         </ul>
