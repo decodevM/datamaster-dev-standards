@@ -18,11 +18,22 @@
     }
     .container {
       max-width: 640px;
-      margin: auto;
+      /* margin: auto; */
+      margin: 32px;
       background-color: #ffffff;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+
+    .header {
+      background: linear-gradient(to right, #3498db, #2980b9);
+      padding: 24px;
+      text-align: center;
+      color: #ffffff;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
     .header .logo-container {
       width: 96px; /* Total width (image width + padding) */
       height: 96px; /* Total height (image height + padding) */
@@ -45,6 +56,7 @@
       font-size: 24px;
       font-weight: bold;
       margin: 0;
+      text-align: center;
     }
     .content {
       padding: 24px;
@@ -61,7 +73,7 @@
     .details h2 {
       font-size: 18px;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 16px;
       color: #4a5568;
     }
     .details ul {
@@ -105,7 +117,7 @@
       <p>Hello,</p>
       <p>
         We’re thrilled to announce a new release for the repository 
-        <strong style="color: #3498db; font-weight: 600;">{{repoName}}</strong>!
+        <strong style="color: #3498db; font-weight: 600;">{{repoName}}!</strong>
       </p>
       <p>
         The changelog for the latest version, <strong>{{tagName}}</strong>, has been generated and is available for your review.
