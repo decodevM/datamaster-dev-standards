@@ -23,22 +23,23 @@
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .header {
-      background: linear-gradient(to right, #3498db, #2980b9);
-      padding: 24px;
-      text-align: center;
-      color: #ffffff;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-    .header img {
-      width: 96px;
-      height: 96px;
+    .header .logo-container {
+      width: 96px; /* Total width (image width + padding) */
+      height: 96px; /* Total height (image height + padding) */
       margin: auto;
       margin-bottom: 16px;
-      background-color: #ffffff;
-      border-radius: 50%;
-      padding: 8px;
+      background-color: #ffffff; /* Shape background color */
+      border-radius: 50%; /* Make the shape circular */
+      display: flex; /* Center the image inside the container */
+      align-items: center;
+      justify-content: center;
+      padding: 16px; /* Padding inside the shape */
+    }
+
+    .header .logo-container img {
+      width: 80px; /* Image width */
+      height: 80px; /* Image height */
+      border-radius: 0; /* Ensure the image itself is not rounded */
     }
     .header h1 {
       font-size: 24px;
@@ -93,8 +94,12 @@
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://raw.githubusercontent.com/decodevM/datamaster-dev-standards/refs/heads/main/.github/scripts/automatic_email/dms-logo.svg" alt="Data Master">
-      <h1>GitHub Actions Notification</h1>
+      <div class="header">
+        <div class="logo-container">
+          <img src="https://raw.githubusercontent.com/decodevM/datamaster-dev-standards/refs/heads/main/.github/scripts/automatic_email/dms-logo.svg" alt="Data Master">
+        </div>
+        <h1>GitHub Actions Notification</h1>
+      </div>
     </div>
     <div class="content">
       <p>Hello,</p>
