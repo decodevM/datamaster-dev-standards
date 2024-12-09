@@ -8,7 +8,7 @@ def populate_email_template(template_path, output_path, context):
 
     # Replace placeholders with context data
     for key, value in context.items():
-        template = template.replace(f"{{{{ {key} }}}}", value)
+        template = template.replace(f"{{{{{key}}}}}", value)
 
     # Write the populated template to a new file
     with open(output_path, 'w') as file:
