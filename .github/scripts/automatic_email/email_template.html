@@ -35,25 +35,25 @@
       border-top-right-radius: 8px;
     }
 
-    .header .logo-container {
-      width: 96px; /* Total width (image width + padding) */
-      height: 96px; /* Total height (image height + padding) */
-      margin: auto;
-      margin-bottom: 16px;
-      background-color: #ffffff; /* Shape background color */
-      border-radius: 50%; /* Make the shape circular */
-      display: flex; /* Center the image inside the container */
-      align-items: center;
-      justify-content: center;
-      padding: 16px; /* Padding inside the shape */
-      text-align: center;
-    }
+  .header .logo-container {
+    width: 96px; /* Total width (image width + padding) */
+    height: 96px; /* Total height (image height + padding) */
+    margin: auto auto 16px;
+    background-color: #ffffff; /* Shape background color */
+    border-radius: 50%; /* Make the shape circular */
+    display: flex; /* Center the image inside the container */
+    align-items: center;
+    justify-content: center;
+    padding: 16px; /* Padding inside the shape */
+    text-align: center;
+    box-sizing: border-box; /* Ensure padding is included in width and height */
+  }
 
-    .header .logo-container img {
-      width: 80px; /* Image width */
-      height: 80px; /* Image height */
-      border-radius: 0; /* Ensure the image itself is not rounded */
-    }
+  .header .logo-container img {
+    display: block; /* Remove extra space under the image */
+    max-width: 100%; /* Ensure the image doesn't overflow its container */
+    max-height: 100%; /* Ensure the image doesn't overflow its container */
+  }
     .header h1 {
       font-size: 24px;
       font-weight: bold;
