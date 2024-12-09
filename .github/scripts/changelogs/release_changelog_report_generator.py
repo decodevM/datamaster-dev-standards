@@ -45,7 +45,7 @@ class ReleaseChangelogReportGenerator(BaseReportStrategy):
             "</head>",
             "<body>",
             self._generate_header(
-                title=f"🚀 Release",
+                title=f"🚀Release",
                 subtitle=f"Released on {today}",
                 current_tag=current_tag,
                 previous_tag=previous_tag
