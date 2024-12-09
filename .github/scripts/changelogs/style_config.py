@@ -47,7 +47,7 @@ class StyleConfig:
 
 body {
     background: white;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     line-height: 1.6;
     color: var(--color-text);
 }
