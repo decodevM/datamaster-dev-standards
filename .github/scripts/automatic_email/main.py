@@ -17,11 +17,8 @@ def populate_email_template(template_path, output_path, context):
 if __name__ == "__main__":
     # Environment variables for dynamic data
     context = {
-        "repo_name": os.getenv("REPO_NAME", "Unknown Repository"),
-        "job_name": "Generate Commit Log",
-        "run_id": os.getenv("GITHUB_RUN_ID", "Unknown Run ID"),
-        "triggered_by": os.getenv("GITHUB_ACTOR", "Unknown Actor"),
-        "tag_name": os.getenv("TAG_NAME", "Unknown Tag"),
+        "repoName": os.getenv("REPO_NAME", "Unknown Repository"),
+        "tagName": os.getenv("TAG_NAME", "Unknown Tag"),
         "date": datetime.now().strftime('%Y-%m-%d'),
         "year": datetime.now().strftime('%Y')
     }

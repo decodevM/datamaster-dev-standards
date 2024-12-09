@@ -48,9 +48,7 @@ jobs:
       - name: Generate dynamic email template
         env:
           REPO_NAME: ${{ github.event.repository.name }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{  github.ref_name }}
         run: python .github/scripts/automatic_email/main.py
 
 
@@ -81,7 +79,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: GitHub Actions <no-reply@github.com>
           to: abdelghaniyacine.barka@outlook.com
-          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
+#          cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: GitHub Actions Notification
           html_body: file://.github/scripts/automatic_email/email_output.html
           attachments: ${{ steps.list_files.outputs.files }}
