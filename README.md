@@ -162,13 +162,13 @@ Git hooks are a great way to ensure that your commit messages follow the require
 
 ### **Here’s how to set it up:**
 
-1. **Copy the `commit-msg` Hook to Your `.git/hooks` Directory 🔄**
+1. **Copy the `hooks scripts` to Your `.git/hooks` Directory 🔄**
 
-   First, you need to copy the `commit-msg` hook file into your repository’s `.git/hooks` directory. This will automatically trigger the validation on commit creation.
+   First, you need to copy the `hooks scripts` into your repository’s `.git/hooks` directory. This will automatically trigger the validation on commit creation.
 
    ```bash
-   cp hooks/commit-msg .git/hooks/
-   chmod +x .git/hooks/commit-msg
+   cp hooks/* .git/hooks/
+   chmod +x .git/hooks/*
    ```
 
 2. **Test the Hook by Making a Commit 📝**
@@ -190,60 +190,80 @@ Git hooks are a great way to ensure that your commit messages follow the require
 
 
 
+## 🛠️ **GitHub Actions Workflows** ⚙️
 
-## 🛠️ GitHub Actions Workflows ⚙️
-
-When you commit and push changes to your repository, **GitHub Actions** kicks in automatically to ensure everything is in order. This includes validating your commit messages to make sure they follow the required format. 🎉
+When you commit and push changes to your repository, **GitHub Actions** automatically kicks in to ensure everything is in order. This includes validating your commit messages, pull request titles, and even generating changelogs when a new release is created. 🎉
 
 ---
 
 ### **How it Works:**
 
 #### **Commit Message Validation 🚦**
-Once you commit and push your changes to the repository, a **GitHub Actions workflow** is triggered to validate your commit message. It checks whether your commit message follows the prescribed **Conventional Commits** format. 
+Once you commit and push your changes to the repository, a **GitHub Actions workflow** is triggered to validate your commit message. It checks whether your commit message follows the prescribed **Conventional Commits** format.
 
 - If your message is valid, the workflow passes, and your changes are accepted.
 - If your message does not follow the correct format, the workflow fails, and you'll be asked to update your commit message.
 
+#### **Pull Request Title Validation 📝**
+In addition to commit message validation, the workflow also validates **pull request titles**. It ensures that pull request titles follow the same **Conventional Commits** format, maintaining uniformity across all pull requests.
+
+- If your PR title is valid, the workflow proceeds smoothly.
+- If it doesn’t conform to the format, you’ll be prompted to adjust it before merging.
+
+#### **Changelog Generation 📋**
+When a **new release** is created with a **tag** that follows the format `v*.*.*` (for example, `v1.0.0`), GitHub Actions automatically triggers a workflow to generate the **changelog**. This process compiles all the relevant changes from commits and pull requests into a structured changelog, making it easier to track new features, bug fixes, and other updates.
+
+- After generating the changelog, an automatic email is sent to notify you about the successful changelog generation, ensuring that your team stays informed about the latest changes.
+
+---
+
 ### **Why This Matters 💡**
 
-By **automating commit message validation**, you achieve the following benefits:
+By **automating commit message validation**, **pull request title validation**, and **changelog generation**, you gain the following benefits:
 
 - 🔄 **Consistency in Commit History**  
   Ensures a clean and consistent commit log, making it easier to understand project progress and track changes across versions.
 
 - ⏱️ **Time-saving Automation**  
-  With automated checks in place, you eliminate the risk of human error, saving valuable time and ensuring that every commit message follows the required format.
+  With automated checks in place, you eliminate the risk of human error, saving valuable time and ensuring that every commit message and PR title follow the required format.
 
 - ✅ **Quality Control**  
   Helps maintain high standards and avoids messy commit histories, which improves collaboration and code readability across teams.
 
+- 📝 **Automated Changelog Generation**  
+  Automatically compiles and generates a changelog with each new release (tagged `v*.*.*`), along with an email notification sent after every successful changelog update, helping your team stay informed without additional manual work.
+
 This small step leads to a **big impact** on the maintainability and professionalism of your codebase! 🚀
 
 
+## 🗂️ **Project Structure** 📁
 
-## 🗂️ Project Structure 📁
-
-The structure of this repository is organized to ensure a smooth integration and clean workflows. Below is a breakdown of the key folders and files:
+The repository is organized to ensure a smooth workflow and easy integration of the template. Below is an overview of the key directories and files:
 
 ---
 
-### **1. `.github/workflows/`** 🔧
-- **What it is**: Contains all the GitHub Actions workflows for CI/CD.
-- **Purpose**: Automates the process of validating commit messages and managing continuous integration pipelines.
+### **1. `.github/`** 🔧
+- **What it is**: Contains shared GitHub Actions workflows that will be integrated into all other repositories.
+- **Purpose**: Automates CI/CD tasks, including validating commit messages and managing other continuous integration processes.
 
-### **2. `hooks/`** 🔑
-- **What it is**: Holds the Git hooks for validating commit messages locally.
-- **Purpose**: Ensures that every commit message meets the required **[Conventional Commits](https://www.conventionalcommits.org/)** format before pushing changes.
+### **2. `repoName/`** 🔑
+- **What it is**: Represents the individual repository structure.
+  - **`scope`**: A script for specific scopes relevant to this repository.
+  - **`.github/`**: Contains repository-specific GitHub Actions workflows.
+  - **`hooks/`**: Holds Git hooks to enforce commit message standards locally.
+- **Purpose**: Each repository follows this structure to maintain consistency and smooth integration with the shared templates.
 
 ### **3. `scripts/setup.sh`** ⚙️
-- **What it is**: A setup script for automating the integration of the template into your project.
-- **Purpose**: Simplifies the installation of the template and its components.
+- **What it is**: A shell script to automate the setup process of the commit message standards and other integrations.
+- **Purpose**: Helps in setting up the commit standards locally, ensuring uniformity across all repositories.
 
 ### **4. `README.md`** 📚
 - **What it is**: This file!
-- **Purpose**: Provides instructions on how to use and set up the template, along with important guidelines and project features.
+- **Purpose**: Provides an overview of how to use the repository template and detailed instructions on setting up and configuring the repository.
 
+---
+
+This structure simplifies management and ensures consistent integration across multiple repositories, with shared workflows and hooks for effective version control and commit validation.
 
 ## Contributing 🤝
 
