@@ -1,6 +1,7 @@
 
 # from weasyprint import HTML
 import subprocess
+import pdfkit
 import os
 import logging
 from pathlib import Path
@@ -90,43 +91,13 @@ class EnhancedCommitDocumentManager(CommitDocumentManager):
 
 
 
-    # def generate_pdf(self, html_file: str):
-    #     """Generate a PDF from the given HTML file using pdfkit."""
-    #     try:
-    #         pdf_file = os.path.splitext(html_file)[0] + '.pdf'
-    #         pdfkit.from_file(html_file, pdf_file)
-    #         logger.info(f"✅ Generated PDF: {pdf_file}")
-    #     except Exception as e:
-    #         logger.error(f"❌ Error generating PDF for {html_file}: {e}")
-    #         raise
-
-
     def generate_pdf(self, html_file: str):
-        """
-        Generate a PDF from the given HTML file using wkhtmltopdf.
-        This ensures that the PDF matches the rendered HTML appearance.
-        """
+        """Generate a PDF from the given HTML file using pdfkit."""
         try:
-            # Define the output PDF file name
             pdf_file = os.path.splitext(html_file)[0] + '.pdf'
-            
-            # Command to use wkhtmltopdf
-            command = [
-                "wkhtmltopdf",
-                "--enable-local-file-access",  # Allow access to local files
-                "--print-media-type",  # Use @media print styles
-                "--no-stop-slow-scripts",  # Allow rendering of dynamic content
-                html_file,
-                pdf_file
-            ]
-            
-            # Execute the command
-            subprocess.run(command, check=True)
-            
-            logger.info(f"Generated PDF: {pdf_file}")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error generating PDF for {html_file}: {e}")
-            raise
+            pdfkit.from_file(html_file, pdf_file)
+            logger.info(f"✅ Generated PDF: {pdf_file}")
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"❌ Error generating PDF for {html_file}: {e}")
             raise
+
