@@ -21,13 +21,13 @@ if __name__ == "__main__":
     REPO_APP_MAPPING = {
         "datamaster-dev-standards": "DataMaster Dev Standards",
         "DMAdministration": "Administration",
-        "DMDashbord": "Dashbord",
-        "DMExpoImpo": "Expo&Impo",
-        "DMInventorying": "Inventorying",
+        "DMDashbord": "Dashboard",
+        "DMExpoImpo": "Import et Export",
+        "DMInventorying": "Stock",
         "DMPriceViewer": "Price Viewer",
-        "DMReferentiel": "Referential",
+        "DMReferentiel": "Referentiel",
         "DMSPOS": "POS",
-        "DMSPurchase": "Purchase",
+        "DMSPurchase": "Commercial",
         "DMSTASK": "TASK",
         "TaskWeb": "TASK Web",
         # Add more mappings as needed

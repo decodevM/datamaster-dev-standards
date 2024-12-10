@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Actions Notification</title>
+  <title>Patch Delivery: {{appName}} - Version {{tagName}}</title>
   <style>
     body {
       font-family: sans-serif;
@@ -44,7 +44,7 @@
     display: flex; /* Center the image inside the container */
     align-items: center;
     justify-content: center;
-    padding: 16px; /* Padding inside the shape */
+    padding: 24px; /* Padding inside the shape */
     text-align: center;
     box-sizing: border-box; /* Ensure padding is included in width and height */
   }
@@ -112,7 +112,7 @@
         <div class="logo-container">
           <img src="https://raw.githubusercontent.com/decodevM/datamaster-dev-standards/refs/heads/main/.github/scripts/automatic_email/dms-logo.svg" alt="Data Master">
         </div>
-        <h1>GitHub Actions Notification</h1>
+        <h1>Patch Delivery: {{appName}} - Version {{tagName}}</h1>
       </div>
     </div>
     <div class="content">
@@ -139,7 +139,7 @@
       <p>Thank you for your continued support and engagement!</p>
     </div>
     <div class="footer">
-      <p>&copy; {{year}} GitHub Actions. This email was automatically generated. Please do not reply to this email.</p>
+      <p>&copy; {{year}} DataMaster Actions. This email was automatically generated. Please do not reply to this email.</p>
     </div>
   </div>
 </body>
