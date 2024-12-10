@@ -77,7 +77,7 @@ jobs:
           secure: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          from: GitHub Actions <no-reply@github.com>
+          from: DataMaster Actions <no-reply@datamasterai.com>
           to: abdelghaniyacine.barka@outlook.com
           cc: mohamed.berhab@datamasterai.com,abdellah.bouchareb@datamasterai.com
           subject: Patch Delivery ${{ github.event.repository.name }} - Version ${{  github.ref_name }}
